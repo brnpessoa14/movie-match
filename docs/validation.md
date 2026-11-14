@@ -41,9 +41,11 @@ Os 29 avisos de Lint incluem sugestões de atualização de dependências/target
 - `docs/lint-results-debug.xml`: relatório final do Lint.
 - `docs/screenshots/01-inicio.png` a `06-compartilhar.png`: capturas reais das cinco Activities e do diálogo com o botão de compartilhamento. A sexta captura mostra os detalhes do filme; não é apresentada como captura do seletor do sistema.
 
-## Implementado, mas ainda não executado com serviço externo
+## Integração OMDb verificada
 
-O comando `python -m app.enrich` implementa enriquecimento por OMDb. Foram testados o parser de notas ausentes/presentes e o tratamento de resposta sem dados. **A consulta real à OMDb não foi executada**, pois não foi fornecida uma chave. Para habilitar cartazes e notas externas, configure `OMDB_API_KEY` em `backend/.env` e execute o comando. A chave não pertence ao Android nem ao repositório.
+A chave foi configurada em `backend/.env`, ignorado pelo Git. O comando `python -m app.enrich` foi executado contra a OMDb real com **20 consultas**, uma por filme. Os 20 títulos receberam cartazes, notas IMDb e notas Rotten Tomatoes. Os dados foram persistidos no SQLite e verificados também por GET `/movies` na API em execução. Evidência agregada: `docs/omdb-check.json`, sem credenciais.
+
+O Android já consome esses campos; não é necessário recompilar para atualizar os filmes. Ao retornar à descoberta ou às recomendações, o app consulta a API novamente. A busca de cartazes requer internet no dispositivo. O tratamento de N/D e o catálogo local continuam disponíveis se algum dado faltar em futuras importações.
 
 O build de entrega é **debug para desenvolvimento local**, com HTTP habilitado somente nesse tipo de build. Release assinado/HTTPS, publicação em loja e dispositivo físico não foram validados e não são apresentados como concluídos.
 

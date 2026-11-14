@@ -1,0 +1,9 @@
+{
+  "provider": "OMDb",
+  "catalog_movies": 20,
+  "movies_with_posters": 20,
+  "movies_with_imdb_rating": 20,
+  "movies_with_rotten_tomatoes_rating": 20,
+  "omdb_requests_in_this_import": 20,
+  "verified_through_live_api": true
+}
