@@ -1,0 +1,8 @@
+{
+  "user_id_before": 7,
+  "user_id_after": 7,
+  "history_count_before": 3,
+  "history_count_after": 3,
+  "process_restart_verified": true,
+  "resumed_activity": "topResumedActivity=ActivityRecord{86899882 u0 br.com.cinematch/.ui.DiscoveryActivity t18}"
+}

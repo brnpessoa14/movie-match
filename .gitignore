@@ -1,0 +1,16 @@
+.idea/
+.gradle/
+**/build/
+local.properties
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.db
+*.db-*
+*.sqlite*
+.env
+!.env.example
+*.log
+.tools/
+captures/

@@ -1,0 +1,29 @@
+<resources>
+    <string name="activity_base_title_1">CineMatch</string>
+    <string name="activity_base_text_2">Tentar novamente</string>
+    <string name="activity_discovery_text_1">DÊ PLAY EM UMA NOVA HISTÓRIA</string>
+    <string name="activity_discovery_text_2">Você explorou todo o catálogo. Veja suas recomendações ou altere avaliações na Minha lista.</string>
+    <string name="activity_discovery_text_3">− Não assisti e não me interessei</string>
+    <string name="activity_discovery_text_4">× Assisti e não gostei</string>
+    <string name="activity_discovery_text_5">+ Me interessei e quero assistir</string>
+    <string name="activity_discovery_text_6">✓ Assisti e gostei</string>
+    <string name="activity_list_contentdescription_1">Filtrar avaliações por status</string>
+    <string name="activity_list_text_2">Ainda não há filmes aqui. Explore o catálogo para começar.</string>
+    <string name="activity_main_contentdescription_1">Ilustração original de cinema CineMatch</string>
+    <string name="activity_main_text_2">SEU PRÓXIMO FAVORITO</string>
+    <string name="activity_main_text_3">Todo bom filme começa com um encontro.</string>
+    <string name="activity_main_text_4">Descubra filmes, conte o que achou e encontre histórias que combinam com você.</string>
+    <string name="activity_main_hint_5">Como você se chama?</string>
+    <string name="activity_main_text_6">Começar</string>
+    <string name="activity_main_text_7">Seu perfil fica salvo neste dispositivo. Sem senha nesta versão acadêmica.</string>
+    <string name="activity_preferences_text_1">Qual é a sua vibe?</string>
+    <string name="activity_preferences_text_2">Escolha seus gêneros favoritos. Você pode mudar de ideia quando quiser.</string>
+    <string name="activity_preferences_text_3">Continuar</string>
+    <string name="item_movie_contentdescription_1">Cartaz do filme</string>
+    <string name="item_movie_text_2">Ver detalhes</string>
+    <string name="item_movie_text_3">Alterar</string>
+    <string name="item_movie_text_4">Excluir</string>
+    <string name="movie_card_contentdescription_1">Cartaz do filme</string>
+    <string name="movie_card_text_2">Ler mais</string>
+    <string name="movie_card_text_3">Compartilhar filme</string>
+</resources>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <application android:name=".CineMatchApplication" android:theme="@style/Theme.CineMatch" android:label="CineMatch"
+        android:icon="@drawable/ic_cinema" android:allowBackup="false" android:supportsRtl="true"
+        android:usesCleartextTraffic="false">
+        <activity android:name=".ui.HistoryActivity" android:exported="false" />
+        <activity android:name=".ui.RecommendationsActivity" android:exported="false" />
+        <activity android:name=".ui.DiscoveryActivity" android:exported="false" />
+        <activity android:name=".ui.PreferencesActivity" android:exported="false" />
+        <activity android:name=".ui.MainActivity" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>

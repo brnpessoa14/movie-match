@@ -1,0 +1,13 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="28dp" android:gravity="center_vertical" android:orientation="vertical">
+        <ImageView android:layout_width="match_parent" android:layout_height="160dp" android:src="@drawable/poster_placeholder" android:scaleType="centerCrop" android:contentDescription="@string/activity_main_contentdescription_1" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="28dp" android:text="@string/activity_main_text_2" android:textColor="@color/accent" android:letterSpacing="0.14" android:textSize="11sp" />
+        <TextView style="@style/Title" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="@string/activity_main_text_3" android:textSize="34sp" />
+        <TextView style="@style/Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:text="@string/activity_main_text_4" />
+        <com.google.android.material.textfield.TextInputLayout android:id="@+id/name_layout" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="28dp" android:hint="@string/activity_main_hint_5" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/name" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="textPersonName|textCapWords" android:maxLength="80" android:singleLine="true" />
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.button.MaterialButton android:id="@+id/start" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="16dp" android:text="@string/activity_main_text_6" android:textAllCaps="false" app:cornerRadius="16dp" />
+        <TextView style="@style/Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:text="@string/activity_main_text_7" android:textSize="12sp" />
+    </LinearLayout>
+</ScrollView>

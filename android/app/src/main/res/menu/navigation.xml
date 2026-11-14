@@ -1,0 +1,6 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/nav_discovery" android:title="Descobrir" android:icon="@drawable/ic_discover" />
+    <item android:id="@+id/nav_recommendations" android:title="Para você" android:icon="@drawable/ic_star" />
+    <item android:id="@+id/nav_history" android:title="Minha lista" android:icon="@drawable/ic_list" />
+    <item android:id="@+id/nav_preferences" android:title="Gêneros" android:icon="@drawable/ic_settings" />
+</menu>

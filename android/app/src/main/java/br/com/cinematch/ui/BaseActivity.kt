@@ -1,0 +1,121 @@
+package br.com.cinematch.ui
+
+import android.content.Intent
+import android.os.Bundle
+import android.view.View
+import android.view.ViewGroup
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
+import br.com.cinematch.R
+import br.com.cinematch.data.Profile
+import br.com.cinematch.databinding.ActivityBaseBinding
+import android.widget.Toast
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.launch
+import org.json.JSONObject
+import retrofit2.HttpException
+import java.io.IOException
+
+abstract class BaseActivity : AppCompatActivity() {
+    protected lateinit var shell: ActivityBaseBinding
+    protected val profile by lazy { Profile(this) }
+    private var busy = false
+    private var retryAction: (() -> Unit)? = null
+    private var feedbackToast: Toast? = null
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        shell = ActivityBaseBinding.inflate(layoutInflater)
+        setContentView(shell.root)
+        ViewCompat.setOnApplyWindowInsetsListener(shell.root) { view, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime())
+            view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+            insets
+        }
+        shell.retry.setOnClickListener { retryAction?.invoke() }
+        val selected = when (this) {
+            is DiscoveryActivity -> R.id.nav_discovery
+            is RecommendationsActivity -> R.id.nav_recommendations
+            is HistoryActivity -> R.id.nav_history
+            else -> R.id.nav_preferences
+        }
+        shell.navigation.menu.findItem(selected).isChecked = true
+        shell.navigation.setOnItemSelectedListener { item ->
+            if (busy || item.itemId == selected) return@setOnItemSelectedListener false
+            val destination = when (item.itemId) {
+                R.id.nav_discovery -> DiscoveryActivity::class.java
+                R.id.nav_recommendations -> RecommendationsActivity::class.java
+                R.id.nav_history -> HistoryActivity::class.java
+                else -> PreferencesActivity::class.java
+            }
+            startActivity(Intent(this, destination).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
+            false
+        }
+    }
+
+    protected fun screen(view: View, subtitle: String) {
+        shell.content.addView(view)
+        shell.toolbar.subtitle = subtitle
+        if (this is MainActivity || !profile.ready) shell.navigation.visibility = View.GONE
+    }
+
+    protected fun requireProfile(): Boolean {
+        if (profile.id != 0) return true
+        startActivity(Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP))
+        finish()
+        return false
+    }
+
+    protected fun message(text: String) {
+        feedbackToast?.cancel()
+        feedbackToast = Toast.makeText(this, text, Toast.LENGTH_SHORT).also { it.show() }
+    }
+
+    override fun onStop() {
+        feedbackToast?.cancel()
+        super.onStop()
+    }
+
+    // LifecycleScope cancela atualizações quando a Activity é destruída.
+    protected fun request(action: suspend () -> Unit) {
+        if (busy) return
+        retryAction = { request(action) }
+        busy = true
+        shell.errorBox.visibility = View.GONE
+        shell.loading.visibility = View.VISIBLE
+        enableActions(shell.content, false)
+        lifecycleScope.launch {
+            try {
+                action()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: Exception) {
+                shell.errorText.text = when (error) {
+                    is HttpException -> {
+                        val detail = runCatching { JSONObject(error.response()?.errorBody()?.string().orEmpty()).optString("detail") }.getOrNull()
+                        when {
+                            error.code() == 404 -> "Registro não encontrado. Se a base foi substituída, abra o app novamente e recupere seu perfil."
+                            error.code() == 409 -> "Este filme já foi avaliado. Atualize a tela ou altere a avaliação na Minha lista."
+                            !detail.isNullOrBlank() && !detail.startsWith("[") -> detail
+                            else -> "A API não concluiu a operação (HTTP ${error.code()}). Tente novamente."
+                        }
+                    }
+                    is IOException -> "Não foi possível conectar à API. Verifique se o backend está ligado e tente novamente."
+                    else -> "Não foi possível concluir a operação. Tente novamente."
+                }
+                shell.errorBox.visibility = View.VISIBLE
+            } finally {
+                busy = false
+                shell.loading.visibility = View.INVISIBLE
+                enableActions(shell.content, true)
+            }
+        }
+    }
+
+    private fun enableActions(view: View, enabled: Boolean) {
+        if (view is android.widget.Button || view is android.widget.EditText || view is android.widget.Spinner) view.isEnabled = enabled
+        if (view is ViewGroup) for (i in 0 until view.childCount) enableActions(view.getChildAt(i), enabled)
+    }
+}
