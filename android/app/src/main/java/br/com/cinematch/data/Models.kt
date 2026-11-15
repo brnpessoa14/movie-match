@@ -1,6 +1,7 @@
 package br.com.cinematch.data
 
-data class User(val id: Int, val name: String)
+data class User(val id: Int, val name: String, val username: String? = null)
+data class ProfileInput(val name: String, val username: String)
 data class UserInput(val name: String)
 data class LoginInput(val username: String, val password: String)
 data class RegisterInput(val name: String, val username: String, val password: String)
@@ -15,10 +16,10 @@ data class Movie(
     val genres: List<Genre>, val cast: List<CastMember>
 )
 enum class EvaluationStatus(val label: String) {
-    SEM_INTERESSE("Não assisti e não me interessei"),
-    NAO_GOSTEI("Assisti e não gostei"),
-    QUERO_ASSISTIR("Me interessei e quero assistir"),
-    GOSTEI("Assisti e gostei")
+    SEM_INTERESSE("Não me interessa"),
+    NAO_GOSTEI("Não gostei"),
+    QUERO_ASSISTIR("Quero assistir"),
+    GOSTEI("Gostei")
 }
 data class EvaluationInput(val user_id: Int, val movie_id: Int, val status: EvaluationStatus)
 data class EvaluationPatch(val status: EvaluationStatus)

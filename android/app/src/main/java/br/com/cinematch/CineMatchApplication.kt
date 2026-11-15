@@ -5,12 +5,12 @@ import android.app.Activity
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatDelegate
 import br.com.cinematch.data.Profile
+import br.com.cinematch.data.Appearance
 
 class CineMatchApplication : Application() {
     override fun onCreate() {
         super.onCreate()
-        // Identidade visual escura também nos componentes criados por código.
-        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+        Appearance.apply(this)
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
             private var started = 0
             override fun onActivityStarted(activity: Activity) { started++ }

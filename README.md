@@ -2,13 +2,27 @@
 
 Descubra sua próxima história. Aplicativo Android nativo para descobrir, avaliar e guardar filmes, com recomendações pessoais e **contas com nome de usuário e senha**. Projeto da AP2 de Desenvolvimento Mobile.
 
+## Interface Banner — versão 3.0-banner
+
+Esta versão local mantém Android nativo em Kotlin/XML e FastAPI/SQLite. A descoberta usa cartaz à esquerda, informações à direita, resumo e detalhes em diálogo. O seletor **Não assisti / Já assisti** muda somente as opções: a avaliação é enviada ao tocar na ação principal ou secundária. A API precisa confirmar antes de avançar. Há bloqueio contra toques duplicados, erro no contexto e nova tentativa; confirmações de sucesso não cobrem a interface.
+
+A navegação é **Descobrir, Para você, Minha lista e Perfil**. O avatar abre o perfil, que permite editar nome e usuário no backend, alterar gêneros, escolher Sistema/Claro/Escuro e sair. A aparência fica salva no dispositivo; credenciais e sessão continuam somente em memória. Não há WebView, login automático ou dados de conta fixos.
+
+O emulador validado neste computador chama-se **CineMatch_Banner_API_37**. Foi criado separadamente após o AVD anterior deixar de estar registrado. Os arquivos antigos e os dados da API foram preservados.
+
+**Abra `D:\movie-match\android` no Android Studio**, aguarde a importação Gradle, escolha a configuração `app` e o emulador acima, e pressione **Run ▶**. Abrir apenas o dispositivo pelo Device Manager inicia o Android; a instalação do código atual é feita pelo Run ou pelo APK compilado. O APK atual identifica-se como **3.0-banner (versionCode 3)**.
+
+API local: `http://localhost:8000/health`. O Android acessa essa API por `http://10.0.2.2:8000/`. Se o servidor estiver desligado, execute `start-backend.ps1` na raiz do projeto. O app exige conexão com essa API para consultar e salvar dados.
+
+Validação desta versão e capturas: [docs/validation-banner.md](docs/validation-banner.md). A interface Banner permanece somente nos arquivos locais nesta etapa; não foi feito commit nem push desta evolução.
+
 ## Abrir e usar
 
 No Android Studio, abra **`D:\movie-match\android`**, aguarde o Gradle Sync, selecione um emulador e execute a configuração `app` com ▶. O projeto usa o SDK 37 e o Gradle Wrapper incluído. O JDK integrado do Android Studio deste computador foi validado.
 
 Na primeira abertura, toque em **Criar conta**. Informe nome, usuário (3–32 letras sem acentos, números, ponto, hífen ou sublinhado) e senha com pelo menos 8 caracteres. Depois escolha seus gêneros. Nas próximas entradas, use **Entrar** com o mesmo usuário e senha.
 
-**O app abre no login e pede credenciais novamente ao retornar do segundo plano.** Senha e token não são persistidos no dispositivo; o token da sessão fica somente em memória. Navegação interna, rotação e o seletor de compartilhamento mantêm a sessão em uso. As preferências e avaliações continuam salvas na conta do backend. O ícone de pessoa no canto superior direito permite sair ou trocar de conta.
+**O app abre no login e pede credenciais novamente ao retornar do segundo plano.** Senha e token não são persistidos no dispositivo; o token da sessão fica somente em memória. Navegação interna, rotação e o seletor de compartilhamento mantêm a sessão em uso. As preferências e avaliações continuam salvas na conta do backend. O avatar no canto superior direito abre o perfil; a opção Sair da conta encerra a sessão.
 
 Perfis demonstrativos antigos, que não tinham senha, foram preservados no banco, mas não geram login automático nem são convertidos em contas com uma senha padrão. Crie uma conta para usar o novo fluxo.
 
@@ -61,13 +75,13 @@ HTTP é permitido somente no manifesto **debug**. Para distribuição de produç
 - Login com cartazes reais, alternância entre entrar/cadastrar e validação dos campos.
 - Preferências em cards selecionáveis, com contador e seleção múltipla.
 - Descoberta com cartaz completo, fundo cinematográfico, título, duração, gêneros, IMDb, Rotten Tomatoes, sinopse expansível, elenco e compartilhamento.
-- Quatro avaliações identificadas por texto, símbolo e cor: sem interesse, não gostei, quero assistir e gostei.
+- Quatro avaliações contextuais: Quero assistir / Não me interessa e Gostei / Não gostei, conforme o seletor.
 - Recomendações com motivos baseados nas preferências e avaliações da conta.
 - Minha lista com filtro, atualização e exclusão das avaliações.
-- Menu de conta e exigência de novo login ao reabrir.
+- Perfil real, edição de nome/usuário, aparência e exigência de novo login ao reabrir.
 - Layouts com largura máxima, listas em duas colunas em telas largas, painel lateral na horizontal e conteúdo rolável em telas pequenas.
 
-### Cinco Activities e Intents
+### Activities e Intents
 
 | Activity | Responsabilidade |
 |---|---|
@@ -76,10 +90,11 @@ HTTP é permitido somente no manifesto **debug**. Para distribuição de produç
 | DiscoveryActivity | Filme atual e quatro avaliações via API |
 | RecommendationsActivity | Recomendações personalizadas e detalhes |
 | HistoryActivity | Lista pessoal, filtro, alteração e exclusão |
+| ProfileActivity | Edição persistente da conta, gêneros, aparência e logout |
 
-As cinco Activities usam XML e Intents explícitas. O compartilhamento usa `Intent.ACTION_SEND`, `text/plain` e `Intent.createChooser`, em `ui/MovieViews.kt`. Nenhum envio é realizado automaticamente. Views: TextView, EditText, MaterialButton, ImageView, CheckBox, RecyclerView, ProgressBar, MaterialCardView, Spinner, ScrollView e GridLayout.
+As cinco Activities originais e a nova ProfileActivity usam XML e Intents explícitas. O compartilhamento usa `Intent.ACTION_SEND`, `text/plain` e `Intent.createChooser`, em `ui/MovieViews.kt`. Nenhum envio é realizado automaticamente. Views: TextView, EditText, MaterialButton, ImageView, CheckBox, RecyclerView, ProgressBar, MaterialCardView, Spinner, ScrollView e GridLayout.
 
-### Capturas reais
+### Capturas da versão anterior
 
 | Login | Gêneros | Descoberta |
 |---|---|---|
@@ -171,11 +186,6 @@ Os testes Android criam contas de demonstração na API em execução. Os testes
 
 ## GitHub e limites
 
-O Git local contém o projeto; publicar um repositório remoto continua pendente. Após revisar e escolher um repositório dedicado:
-
-```powershell
-git remote add origin https://github.com/SEU-USUARIO/cinematch.git
-git push -u origin main
-```
+O repositório remoto contém a entrega anterior. A evolução Banner é local e não foi publicada no GitHub.
 
 A API de demonstração usa SQLite e HTTP local no build debug. Uma publicação externa exige HTTPS e configuração de produção. A conta não oferece recuperação de senha por e-mail. Catálogo, preferências e histórico exigem conexão com o próprio backend. Dispositivo físico, Play Store e nuvem não foram validados nesta atualização.

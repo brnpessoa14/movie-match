@@ -1,24 +1,20 @@
-<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="wrap_content" app:cardCornerRadius="24dp" app:cardBackgroundColor="@color/surface" app:strokeColor="@color/outline" app:strokeWidth="1dp" app:cardElevation="0dp">
-<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-    <FrameLayout android:layout_width="match_parent" android:layout_height="@dimen/poster_height">
-        <ImageView android:id="@+id/backdrop" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:alpha="0.22" android:importantForAccessibility="no"/>
-        <ImageView android:id="@+id/poster" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter" android:src="@drawable/poster_placeholder" android:contentDescription="@string/v2_movie_card_1"/>
-        <View android:layout_width="match_parent" android:layout_height="match_parent" android:background="@drawable/poster_shade"/>
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="top|start" android:layout_margin="16dp" android:background="@drawable/badge_bg" android:text="@string/v2_movie_card_2" android:textColor="@color/text" android:textSize="10sp" android:letterSpacing="0.12"/>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_gravity="bottom" android:orientation="vertical" android:padding="20dp">
-            <TextView android:id="@+id/title" style="@style/Title" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="30sp" android:textColor="#FFFFFF"/>
-            <TextView android:id="@+id/metadata" style="@style/Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:textColor="#DBE1EA" android:textSize="12sp"/>
-        </LinearLayout>
-    </FrameLayout>
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="20dp">
-        <TextView android:id="@+id/genres" style="@style/Eyebrow" android:layout_width="match_parent" android:layout_height="wrap_content" android:letterSpacing="0.04"/>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:baselineAligned="false">
-            <TextView android:id="@+id/imdb" android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="@drawable/badge_bg" android:textColor="@color/watch" android:textSize="12sp"/>
-            <TextView android:id="@+id/rotten" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:background="@drawable/badge_bg" android:textColor="@color/like" android:textSize="12sp"/>
-        </LinearLayout>
-        <TextView android:id="@+id/plot" style="@style/Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:maxLines="3" android:ellipsize="end" android:textSize="14sp"/>
-        <com.google.android.material.button.MaterialButton android:id="@+id/expand" style="@style/Widget.MaterialComponents.Button.TextButton" android:layout_width="wrap_content" android:layout_height="48dp" android:text="@string/v2_movie_card_3" android:textAllCaps="false" android:textSize="12sp" android:paddingHorizontal="0dp"/>
-        <TextView android:id="@+id/cast" style="@style/Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="12sp"/>
-        <com.google.android.material.button.MaterialButton android:id="@+id/share" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="12dp" android:text="@string/v2_movie_card_4" android:textAllCaps="false" android:textSize="13sp" app:strokeColor="@color/outline" app:cornerRadius="12dp"/>
-    </LinearLayout>
-</LinearLayout></com.google.android.material.card.MaterialCardView>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+ <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" app:cardCornerRadius="18dp" app:cardBackgroundColor="@color/surface" app:strokeColor="@color/outline" app:strokeWidth="1dp" app:cardElevation="0dp">
+  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="14dp" android:gravity="center_vertical" android:baselineAligned="false">
+   <com.google.android.material.card.MaterialCardView android:layout_width="@dimen/banner_poster_width" android:layout_height="@dimen/banner_poster_height" app:cardCornerRadius="10dp" app:strokeWidth="0dp" app:cardElevation="0dp" app:cardBackgroundColor="@color/surface_raised"><ImageView android:id="@+id/poster" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter" android:src="@drawable/poster_placeholder" android:contentDescription="@string/banner_movie_card_27"/></com.google.android.material.card.MaterialCardView>
+   <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginStart="14dp" android:orientation="vertical">
+    <TextView android:id="@+id/banner_eyebrow" style="@style/Eyebrow" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/banner_movie_card_28" android:textSize="10sp"/>
+    <TextView android:id="@+id/title" style="@style/Title" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="7dp" android:textSize="22sp"/>
+    <TextView android:id="@+id/subtitle" style="@style/Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:textSize="13sp" android:visibility="gone"/>
+    <TextView android:id="@+id/metadata" style="@style/Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:textSize="13sp"/>
+    <TextView android:id="@+id/genres" style="@style/Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="7dp" android:textSize="12sp"/>
+    <TextView android:id="@+id/imdb" style="@style/Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:textColor="@color/text" android:textSize="12sp"/>
+   </LinearLayout>
+  </LinearLayout>
+ </com.google.android.material.card.MaterialCardView>
+ <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:baselineAligned="false" android:layout_marginTop="4dp">
+  <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/banner_movie_card_29" android:textColor="@color/text" android:textSize="14sp" android:fontFamily="sans-serif-medium"/>
+  <com.google.android.material.button.MaterialButton android:id="@+id/expand" style="@style/TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/banner_item_movie_24" app:icon="@drawable/ic_arrow" app:iconGravity="textEnd" app:iconSize="16dp"/>
+ </LinearLayout>
+ <TextView android:id="@+id/plot" style="@style/Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:maxLines="@integer/synopsis_lines" android:ellipsize="end" android:textSize="14sp"/>
+</LinearLayout>

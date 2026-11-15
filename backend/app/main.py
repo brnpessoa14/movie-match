@@ -73,16 +73,27 @@ def logout(session: SessionAuth, db: DB):
 @app.get("/users/{user_id}", response_model=s.UserOut, tags=["Usuários"])
 def get_user(user_id: int, db: DB, session: SessionAuth):
     authorize(session, user_id)
-    return require(db, m.User, user_id)
+    return profile_result(require(db, m.User, user_id), session.account)
+
+
+def profile_result(user, account):
+    return {"id": user.id, "name": user.name, "created_at": user.created_at,
+            "username": account.username}
 
 
 @app.patch("/users/{user_id}", response_model=s.UserOut, tags=["Usuários"])
-def update_user(user_id: int, body: s.UserInput, db: DB, session: SessionAuth):
+def update_user(user_id: int, body: s.ProfileInput, db: DB, session: SessionAuth):
     authorize(session, user_id)
     user = require(db, m.User, user_id)
     user.name = body.name
-    db.commit()
-    return user
+    if body.username is not None:
+        session.account.username = body.username
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(409, "Este nome de usuário já está em uso.")
+    return profile_result(user, session.account)
 
 
 @app.get("/genres", response_model=list[s.GenreOut], tags=["Catálogo"])

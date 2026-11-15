@@ -7,8 +7,8 @@ android {
         applicationId = "br.com.cinematch"
         minSdk = 26
         targetSdk = 36
-        versionCode = 2
-        versionName = "2.0"
+        versionCode = 3
+        versionName = "3.0-banner"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         val apiUrl = providers.gradleProperty("API_BASE_URL").orElse("http://10.0.2.2:8000/").get()
         require(apiUrl.endsWith("/") && (apiUrl.startsWith("http://") || apiUrl.startsWith("https://")))

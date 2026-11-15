@@ -24,7 +24,9 @@ class PreferencesActivity : BaseActivity() {
             request {
                 Repository.api.savePreferences(profile.id, PreferencesInput(checks.filterValues { it.isChecked }.keys.toList()))
                 profile.complete()
-                startActivity(Intent(this, DiscoveryActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
+                if (!intent.getBooleanExtra("from_profile", false)) {
+                    startActivity(Intent(this, DiscoveryActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
+                }
                 finish()
             }
         }

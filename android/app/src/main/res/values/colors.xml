@@ -1,8 +1,1 @@
-<resources>
-    <color name="background">#090E17</color><color name="surface">#151E2C</color>
-    <color name="surface_raised">#202C3E</color><color name="outline">#2B394D</color>
-    <color name="accent">#FF6854</color><color name="text">#F5F4F0</color>
-    <color name="muted">#9DAAC0</color><color name="skip">#B2BDD0</color>
-    <color name="dislike">#FF8C9A</color><color name="watch">#F2CB81</color>
-    <color name="like">#8BDEBB</color>
-</resources>
+<resources><color name="background">#F7F7F5</color><color name="surface">#FFFFFF</color><color name="surface_raised">#EEEFEC</color><color name="outline">#E1E4DE</color><color name="accent">#BF4435</color><color name="text">#202322</color><color name="muted">#696E6B</color><color name="primary">#C54737</color><color name="on_primary">#FFFFFF</color><color name="skip">#696E6B</color><color name="dislike">#BF4435</color><color name="watch">#BF4435</color><color name="like">#202322</color></resources>

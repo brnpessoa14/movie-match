@@ -1,6 +1,1 @@
-<resources>
-    <string name="nav_discovery_label">Descobrir</string>
-    <string name="nav_recommendations_label">Para você</string>
-    <string name="nav_history_label">Minha lista</string>
-    <string name="nav_preferences_label">Gêneros</string>
-</resources>
+<resources><string name="nav_discovery_label">Descobrir</string><string name="nav_recommendations_label">Para você</string><string name="nav_history_label">Minha lista</string><string name="nav_profile_label">Perfil</string><string name="nav_preferences_label">Gêneros</string></resources>

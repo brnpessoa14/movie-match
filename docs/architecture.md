@@ -56,3 +56,14 @@ Formulários e descoberta têm largura máxima de 560 dp; listas usam até 1080 
 Cada operação de escrita confirma uma transação. A avaliação só avança depois da confirmação. Se o próximo carregamento falha após salvar, a nova tentativa não repete a avaliação confirmada. O banco também impede duplicações. As Activities consultam novamente os dados ao retomar a navegação.
 
 A recomendação usa +3 para preferências; +5/+2/−4/−1 para avaliações; média por gênero e ID como desempate. Exclui todos os filmes já avaliados e calcula novamente em cada consulta. IMDb e Rotten Tomatoes são informações de exibição, não parte do peso de recomendação.
+
+
+## Evolução Banner (3.0)
+
+As cinco Activities originais foram preservadas; ProfileActivity acrescenta edição real da conta e configurações. Gêneros continuam no fluxo de cadastro e também são acessíveis pelo perfil. O shell possui avatar, quatro destinos, insets reais e erros contextuais. A navegação continua disponível durante consultas; a requisição de avaliação bloqueia toques duplicados.
+
+DiscoveryActivity utiliza somente dois contextos: não assisti e já assisti. Mudar o seletor não envia HTTP. Depois de um POST confirmado, remove o filme da fila carregada, restaura o contexto inicial e atualiza a tela; falhas mantêm filme e contexto. As listas consultam novamente a API ao retomar. Detalhes e compartilhamento permanecem nativos.
+
+O endpoint PATCH /users/{id} aceita nome e usuário opcional, normaliza o usuário, valida formato e unicidade e faz a atualização na mesma transação. O ID da conta e as relações existentes permanecem iguais. GET /users/{id} inclui o usuário da conta autenticada. A autorização existente permanece obrigatória.
+
+Appearance salva somente a opção Sistema/Claro/Escuro em SharedPreferences e aplica AppCompatDelegate no início do processo. Cores claras e escuras ficam em values e values-night. A descoberta adapta cartaz, introdução e resumo à altura disponível, sem reduzir globalmente a tipografia. Textos completos permanecem no diálogo. Fontes ampliadas podem rolar a área do filme; ações e navegação permanecem acessíveis.

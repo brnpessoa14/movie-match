@@ -13,6 +13,7 @@ interface Api {
     @POST("auth/logout") suspend fun logout(): retrofit2.Response<Unit>
     @GET("movies") suspend fun movies(): List<Movie>
     @GET("users/{id}") suspend fun user(@Path("id") id: Int): User
+    @PATCH("users/{id}") suspend fun saveUser(@Path("id") id: Int, @Body input: ProfileInput): User
     @GET("genres") suspend fun genres(): List<Genre>
     @GET("users/{id}/preferences") suspend fun preferences(@Path("id") id: Int): List<Genre>
     @PUT("users/{id}/preferences") suspend fun savePreferences(@Path("id") id: Int, @Body input: PreferencesInput): List<Genre>

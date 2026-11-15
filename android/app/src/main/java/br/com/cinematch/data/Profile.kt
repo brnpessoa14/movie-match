@@ -9,6 +9,7 @@ class Profile(@Suppress("UNUSED_PARAMETER") context: Context) {
     val name: String get() = current?.user?.name.orEmpty()
     val username: String get() = current?.username.orEmpty()
     fun save(auth: AuthResult) { current = auth }
+    fun update(user: User) { current = current?.copy(user = user, username = user.username ?: username) }
     fun complete() { current = current?.copy(preferences_ready = true) }
     fun clear() = clearSession()
 

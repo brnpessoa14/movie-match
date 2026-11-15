@@ -2,5 +2,5 @@
     <item android:id="@+id/nav_discovery" android:title="@string/nav_discovery_label" android:icon="@drawable/ic_discover" />
     <item android:id="@+id/nav_recommendations" android:title="@string/nav_recommendations_label" android:icon="@drawable/ic_star" />
     <item android:id="@+id/nav_history" android:title="@string/nav_history_label" android:icon="@drawable/ic_list" />
-    <item android:id="@+id/nav_preferences" android:title="@string/nav_preferences_label" android:icon="@drawable/ic_settings" />
+    <item android:id="@+id/nav_profile" android:title="@string/nav_profile_label" android:icon="@drawable/ic_account" />
 </menu>

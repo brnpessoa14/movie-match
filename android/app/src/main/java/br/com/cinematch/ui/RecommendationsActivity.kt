@@ -13,8 +13,9 @@ class RecommendationsActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityListBinding.inflate(layoutInflater)
         screen(binding.root, "Escolhidos para você")
-        binding.heading.text = "O seu próximo favorito."
-        binding.description.text = "Uma seleção que acompanha o seu gosto, filme a filme."
+        binding.eyebrow.text = "FEITO PARA VOCÊ"
+        binding.heading.text = "Seu próximo favorito."
+        binding.description.text = "Histórias que acompanham seu gosto."
         binding.list.layoutManager = GridLayoutManager(this, if (resources.configuration.screenWidthDp >= 720) 2 else 1)
         binding.list.adapter = adapter
     }

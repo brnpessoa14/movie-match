@@ -7,13 +7,14 @@ import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.Lifecycle
 import br.com.cinematch.R
 import br.com.cinematch.data.Profile
 import br.com.cinematch.data.Repository
 import br.com.cinematch.databinding.ActivityBaseBinding
-import android.widget.Toast
+import android.widget.TextView
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -26,50 +27,52 @@ abstract class BaseActivity : AppCompatActivity() {
     protected val profile by lazy { Profile(this) }
     private var busy = false
     private var retryAction: (() -> Unit)? = null
-    private var feedbackToast: Toast? = null
+    protected val isBusy: Boolean get() = busy
+    protected var contextualError: TextView? = null
+    protected var contextualRetry: View? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         shell = ActivityBaseBinding.inflate(layoutInflater)
         setContentView(shell.root)
+        WindowCompat.getInsetsController(window, shell.root).apply {
+            isAppearanceLightStatusBars = resources.getBoolean(R.bool.light_system_bars)
+            isAppearanceLightNavigationBars = resources.getBoolean(R.bool.light_system_bars)
+        }
         ViewCompat.setOnApplyWindowInsetsListener(shell.root) { view, insets ->
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.ime())
             view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
             WindowInsetsCompat.CONSUMED
         }
         shell.retry.setOnClickListener { retryAction?.invoke() }
-        shell.toolbar.setOnMenuItemClickListener {
-            if (busy) return@setOnMenuItemClickListener false
-            MaterialAlertDialogBuilder(this).setTitle(profile.name)
-                .setMessage("@${profile.username}\n\nSeu histórico fica salvo na sua conta.")
-                .setNegativeButton("Continuar", null)
-                .setPositiveButton("Sair da conta") { _, _ ->
-                    request {
-                        try { Repository.api.logout() }
-                        finally { profile.clear(); openLogin() }
-                    }
-                }.show()
-            true
+        shell.account.setOnClickListener {
+            if (this !is ProfileActivity) navigate(ProfileActivity::class.java)
         }
         val selected = when (this) {
             is DiscoveryActivity -> R.id.nav_discovery
             is RecommendationsActivity -> R.id.nav_recommendations
             is HistoryActivity -> R.id.nav_history
-            else -> R.id.nav_preferences
+            else -> R.id.nav_profile
         }
         shell.navigation.menu.findItem(selected).isChecked = true
         shell.navigation.setOnItemSelectedListener { item ->
-            if (busy || item.itemId == selected) return@setOnItemSelectedListener false
+            if (item.itemId == selected) return@setOnItemSelectedListener false
             val destination = when (item.itemId) {
                 R.id.nav_discovery -> DiscoveryActivity::class.java
                 R.id.nav_recommendations -> RecommendationsActivity::class.java
                 R.id.nav_history -> HistoryActivity::class.java
-                else -> PreferencesActivity::class.java
+                else -> ProfileActivity::class.java
             }
-            startActivity(Intent(this, destination).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
+            navigate(destination)
             false
         }
     }
+
+    protected fun navigate(destination: Class<out BaseActivity>) {
+        startActivity(Intent(this, destination).addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT))
+    }
+
+    protected fun refreshAvatar() { shell.account.text = initials(profile.name) }
 
     protected fun screen(view: View, subtitle: String) {
         shell.content.addView(view)
@@ -84,7 +87,7 @@ abstract class BaseActivity : AppCompatActivity() {
         return false
     }
 
-    private fun openLogin() {
+    protected fun openLogin() {
         startActivity(Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
         finish()
     }
@@ -96,26 +99,24 @@ abstract class BaseActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        refreshAvatar()
         Profile.externalFlow = false
         if (this !is MainActivity) requireProfile()
     }
 
     protected fun message(text: String) {
-        feedbackToast?.cancel()
-        feedbackToast = Toast.makeText(this, text, Toast.LENGTH_SHORT).also { it.show() }
-    }
-
-    override fun onStop() {
-        feedbackToast?.cancel()
-        super.onStop()
+        // Confirmação apenas acessível, sem sobreposição visual.
+        shell.content.announceForAccessibility(text)
     }
 
     // LifecycleScope cancela atualizações quando a Activity é destruída.
-    protected fun request(action: suspend () -> Unit) {
+    protected fun request(onError: ((String) -> Unit)? = null, action: suspend () -> Unit) {
         if (busy) return
-        retryAction = { request(action) }
+        retryAction = { request(onError, action) }
         busy = true
         shell.errorBox.visibility = View.GONE
+        contextualError?.visibility = View.GONE
+        contextualRetry?.visibility = View.GONE
         shell.loading.visibility = View.VISIBLE
         enableActions(shell.content, false)
         lifecycleScope.launch {
@@ -129,7 +130,7 @@ abstract class BaseActivity : AppCompatActivity() {
                     if (lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) openLogin()
                     return@launch
                 }
-                shell.errorText.text = when (error) {
+                val explanation = when (error) {
                     is HttpException -> {
                         val detail = runCatching { JSONObject(error.response()?.errorBody()?.string().orEmpty()).optString("detail") }.getOrNull()
                         when {
@@ -141,7 +142,16 @@ abstract class BaseActivity : AppCompatActivity() {
                     is IOException -> "Não foi possível conectar à API. Verifique se o backend está ligado e tente novamente."
                     else -> "Não foi possível concluir a operação. Tente novamente."
                 }
-                shell.errorBox.visibility = View.VISIBLE
+                if (onError != null) onError(explanation)
+                else if (contextualError != null) {
+                    contextualError?.text = explanation
+                    contextualError?.visibility = View.VISIBLE
+                    contextualRetry?.visibility = View.VISIBLE
+                    contextualRetry?.setOnClickListener { retryAction?.invoke() }
+                } else {
+                    shell.errorText.text = explanation
+                    shell.errorBox.visibility = View.VISIBLE
+                }
             } finally {
                 busy = false
                 shell.loading.visibility = View.INVISIBLE

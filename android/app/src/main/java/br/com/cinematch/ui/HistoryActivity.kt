@@ -20,8 +20,8 @@ class HistoryActivity : BaseActivity() {
         binding = ActivityListBinding.inflate(layoutInflater)
         screen(binding.root, "Sua história com o cinema")
         binding.eyebrow.text = "SUA COLEÇÃO PESSOAL"
-        binding.heading.text = "Histórias que ficam."
-        binding.description.text = "Guarde os próximos encontros. Reveja os que já aconteceram."
+        binding.heading.text = "Minha lista."
+        binding.description.text = "Seus próximos filmes. Suas histórias favoritas."
         binding.list.layoutManager = GridLayoutManager(this, if (resources.configuration.screenWidthDp >= 720) 2 else 1)
         binding.list.adapter = adapter
         binding.filter.visibility = View.VISIBLE

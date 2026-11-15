@@ -30,6 +30,16 @@ class UserOut(OrmSchema):
     id: int
     name: str
     created_at: datetime
+    username: str | None = None
+
+
+class ProfileInput(UserInput):
+    username: str | None = Field(default=None, min_length=3, max_length=32, pattern=r"^[a-z0-9_.-]+$")
+
+    @field_validator("username", mode="before")
+    @classmethod
+    def clean_username(cls, value):
+        return value.strip().lower() if isinstance(value, str) else value
 
 
 class LoginInput(BaseModel):

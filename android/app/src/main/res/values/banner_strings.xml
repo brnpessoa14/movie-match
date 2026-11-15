@@ -1,0 +1,31 @@
+<resources>
+    <string name="banner_activity_base_1">Abrir meu perfil</string>
+    <string name="banner_activity_base_2">Tentar novamente</string>
+    <string name="banner_activity_discovery_3">SEU PRÓXIMO FILME</string>
+    <string name="banner_activity_discovery_4">Uma boa história.</string>
+    <string name="banner_activity_discovery_5">Você explorou todo o catálogo. Reveja suas escolhas na Minha lista.</string>
+    <string name="banner_activity_discovery_6">Não assisti</string>
+    <string name="banner_activity_discovery_7">Já assisti</string>
+    <string name="banner_activity_discovery_8">Quero assistir</string>
+    <string name="banner_activity_discovery_9">Não me interessa</string>
+    <string name="banner_activity_profile_10">DO SEU JEITO</string>
+    <string name="banner_activity_profile_11">Meu perfil.</string>
+    <string name="banner_activity_profile_12">Editar meus dados</string>
+    <string name="banner_activity_profile_13">Meus gêneros</string>
+    <string name="banner_activity_profile_14">PREFERÊNCIAS</string>
+    <string name="banner_activity_profile_15">Aparência</string>
+    <string name="banner_activity_profile_16">Informações da conta</string>
+    <string name="banner_activity_profile_17">Sair da conta</string>
+    <string name="banner_activity_profile_18">Seu gosto muda. Suas histórias ficam.</string>
+    <string name="banner_dialog_movie_19">Cartaz</string>
+    <string name="banner_dialog_movie_20">Compartilhar filme</string>
+    <string name="banner_dialog_profile_21">Nome de exibição</string>
+    <string name="banner_dialog_profile_22">Nome de usuário</string>
+    <string name="banner_dialog_profile_23">Salvar alterações</string>
+    <string name="banner_item_movie_24">Detalhes</string>
+    <string name="banner_item_movie_25">Alterar avaliação</string>
+    <string name="banner_item_movie_26">Remover</string>
+    <string name="banner_movie_card_27">Cartaz do filme</string>
+    <string name="banner_movie_card_28">UMA NOVA HISTÓRIA</string>
+    <string name="banner_movie_card_29">A história</string>
+</resources>
