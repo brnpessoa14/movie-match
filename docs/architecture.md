@@ -1,54 +1,58 @@
-# Arquitetura do CineMatch
+# Arquitetura — CineMatch 2
 
-Fluxo: **Activity/XML → Repository/Retrofit → HTTP JSON → FastAPI/Pydantic → SQLAlchemy → SQLite**. A resposta percorre o caminho inverso. Não há acesso Android direto ao banco. Imagens opcionais são carregadas com Coil e têm fallback vetorial original.
+**XML/Activity → Repository/Retrofit → FastAPI/Pydantic → SQLAlchemy → SQLite.** Imagens são carregadas pelo Coil usando URLs do catálogo, com fallback vetorial. O Android nunca acessa o SQLite diretamente.
 
-## Android
+## Autenticação e ciclo de vida
 
-`data/Models.kt` contém os contratos JSON, `Api.kt` centraliza endpoints e cliente de rede, e `Profile.kt` guarda o ID. As cinco Activities cuidam dos respectivos formulários/listas. `BaseActivity` compartilha navegação, insets, indicador de carregamento e tratamento de erro; `MovieViews` compartilha detalhes e Intent implícita; `MovieAdapter` cuida das linhas de RecyclerView. As requisições são `suspend`, executadas em `lifecycleScope`, e canceladas quando a Activity é destruída.
+O cadastro cria `User` e `Account` na mesma transação. `auth.py` aplica PBKDF2-HMAC-SHA256 com salt aleatório e 600.000 iterações à senha. O login verifica o hash com comparação constante e devolve um token aleatório de 256 bits. O banco guarda apenas o hash desse token e a expiração; logout exclui a sessão correspondente.
 
-O app bloqueia ações durante uma requisição. Ao salvar uma avaliação, só avança quando o servidor confirma. Se o carregamento do próximo filme falhar depois de salvar, a nova tentativa apenas carrega o catálogo, sem reenviar a avaliação já confirmada. O banco também impõe unicidade por usuário/filme. Em caso de resposta perdida após commit, uma repetição retorna 409; o usuário pode navegar de volta à descoberta ou editar pelo histórico.
+`HTTPBearer` integra a autenticação ao Swagger. As rotas de preferências, perfil, descoberta, avaliações e recomendações dependem da sessão e conferem a correspondência entre a conta e o usuário solicitado. Saber um ID não autoriza acesso a ele. O catálogo e os gêneros são públicos.
 
-No retorno a descoberta, recomendações e histórico, `onResume` consulta a API novamente. O histórico usa a resposta completa do perfil para filtrar status localmente, preservando o backend como fonte de verdade. A lista desejada é o filtro `QUERO_ASSISTIR`, também exposto em endpoint próprio.
+No Android, `Profile` mantém a sessão somente em memória. O ID salvo pela versão antiga no SharedPreferences é ignorado. `MainActivity` sempre apresenta login. `CineMatchApplication` acompanha as Activities iniciadas; ao deixar o app em segundo plano, descarta a sessão. Ao retornar, `BaseActivity` abre o login e limpa a pilha das telas privadas. Rotação e navegação interna não são tratadas como uma nova entrada; há uma exceção transitória para o seletor de compartilhamento.
 
-## Backend
+Senhas não são persistidas no dispositivo nem retornadas pela API. A duração de oito horas no servidor é um limite máximo da sessão, e não uma opção de login automático. O registro de conta permanece no banco, assim como suas preferências e avaliações.
 
-- `database.py`: engine, sessões curtas, `.env` e habilitação de chaves estrangeiras do SQLite.
-- `models.py`: tabelas, relacionamentos e restrições de integridade.
-- `schemas.py`: validação de entrada e serialização das respostas.
-- `catalog.py`: seed idempotente; reiniciar não duplica nem substitui dados enriquecidos.
-- `recommendations.py`: algoritmo determinístico, independente da UI e da OMDb.
-- `main.py`: endpoints e transações; ordem de rotas evita conflito de `/movies/discovery` com IDs.
-- `enrich.py`: importação opcional da OMDb por comando local.
+Referências técnicas: [OWASP Password Storage](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html) e [FastAPI Security](https://fastapi.tiangolo.com/tutorial/security/). A escolha de uma sessão opaca revogável permite evitar uma dependência de JWT neste projeto local.
 
-O projeto tem poucas entidades, por isso usa módulos de responsabilidade única em vez de várias camadas de classes vazias. Os modelos Pydantic impedem status inválidos; restrições SQL impedem duplicações e referências inválidas. Erros FastAPI usam JSON com `detail`.
+## Responsabilidades
 
-## Banco relacional
+- `data/Api.kt`: contratos Retrofit e interceptor Bearer.
+- `data/Models.kt`: payloads JSON de conta, filmes e avaliações.
+- `data/Profile.kt`: sessão móvel em memória.
+- `ui/BaseActivity.kt`: navegação, menu de conta, tratamento de erros e carregamento.
+- `ui/MainActivity.kt`: validação, cadastro e login.
+- Demais Activities: preferências, avaliação, recomendações e lista pessoal.
+- `ui/MovieViews.kt`: cartaz, informações e Intent de compartilhamento reutilizáveis.
+- `ui/MovieAdapter.kt`: cards de listas.
+- `ui/MaxWidthLayout.kt`: limita e centraliza a largura dos conteúdos.
+- `backend/app/auth.py`: derivação/verificação de senha, sessões e autorização.
+- `database.py` e `models.py`: sessões SQL e restrições relacionais.
+- `schemas.py` e `main.py`: validação e endpoints.
+- `recommendations.py`: recomendação independente da UI e da OMDb.
+- `catalog.py` e `enrich.py`: seed idempotente e enriquecimento manual.
 
-| Tabela | Chave e relacionamentos |
+## Tabelas
+
+| Tabela | Integridade |
 |---|---|
-| users | id, name, created_at |
-| movies | id; imdb_id único; metadados e notas opcionais |
-| genres | id; name único |
-| movie_genres | chave composta movie_id/genre_id e duas FKs |
-| movie_cast | chave composta movie_id/cast_order; FK para movie |
-| user_preferences | chave composta user_id/genre_id e duas FKs |
-| evaluations | id; FKs user_id/movie_id; unicidade do par; CHECK dos quatro status |
+| users | ID do perfil e nome de exibição |
+| accounts | Usuário único, FK única para users, hash da senha e conclusão de preferências |
+| auth_sessions | FK para accounts, hash único do token e expiração |
+| movies | ID, IMDb ID único, metadados e notas opcionais |
+| genres | ID e nome único |
+| movie_genres | PK composta e FKs |
+| movie_cast | PK movie_id/cast_order e FK |
+| user_preferences | PK user_id/genre_id e FKs |
+| evaluations | FKs, unicidade user_id/movie_id e CHECK dos quatro status |
 
-```mermaid
-erDiagram
-    USERS ||--o{ USER_PREFERENCES : escolhe
-    GENRES ||--o{ USER_PREFERENCES : pertence
-    MOVIES ||--o{ MOVIE_GENRES : possui
-    GENRES ||--o{ MOVIE_GENRES : classifica
-    MOVIES ||--o{ MOVIE_CAST : apresenta
-    USERS ||--o{ EVALUATIONS : registra
-    MOVIES ||--o{ EVALUATIONS : recebe
-```
+As tabelas novas são criadas sem alterar ou apagar as tabelas existentes. Perfis antigos sem credenciais são preservados e não podem ser assumidos apenas pelo ID. Um backup SQLite é feito antes da atualização do ambiente local.
 
-Cada POST/PATCH/PUT/DELETE confirma uma transação. As sessões são fechadas ao concluir a requisição. O arquivo SQLite fica no diretório de trabalho do backend, salvo se `DATABASE_URL` substituir o caminho. O script raiz sempre inicia no diretório `backend` para evitar bancos acidentais em pastas diferentes.
+## Interface adaptável
 
-## Explicabilidade
+Formulários e descoberta têm largura máxima de 560 dp; listas usam até 1080 dp. Listas mostram duas colunas a partir de 720 dp. A descoberta possui layout próprio na horizontal, com filme e ações em painéis separados. Qualificadores de altura ajustam o cartaz em telas menores. Conteúdo longo e teclado usam rolagem; as quatro ações ficam acessíveis. Os recuos do sistema são aplicados uma única vez no shell.
 
-Peso do gênero = 3 se preferido + soma dos pesos dos status de filmes avaliados que contêm esse gênero. Pontuação do filme = soma dos pesos dos seus gêneros / quantidade de gêneros. Ordenação decrescente por pontuação e crescente por ID. As notas IMDb/RT são exibidas, mas não influenciam a recomendação. Alterações são refletidas imediatamente porque a pontuação é calculada a cada consulta.
+## Persistência e recomendação
 
-Sem autenticação, o `user_id` informado não comprova identidade. Esta implementação foi limitada à apresentação local. Não publicar esta API aberta na internet sem uma camada de autenticação/autorização e configuração adequada de produção.
+Cada operação de escrita confirma uma transação. A avaliação só avança depois da confirmação. Se o próximo carregamento falha após salvar, a nova tentativa não repete a avaliação confirmada. O banco também impede duplicações. As Activities consultam novamente os dados ao retomar a navegação.
+
+A recomendação usa +3 para preferências; +5/+2/−4/−1 para avaliações; média por gênero e ID como desempate. Exclui todos os filmes já avaliados e calcula novamente em cada consulta. IMDb e Rotten Tomatoes são informações de exibição, não parte do peso de recomendação.

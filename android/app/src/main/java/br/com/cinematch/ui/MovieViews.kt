@@ -9,6 +9,7 @@ import android.widget.ImageView
 import android.widget.Toast
 import br.com.cinematch.R
 import br.com.cinematch.data.Movie
+import br.com.cinematch.data.Profile
 import br.com.cinematch.databinding.MovieCardBinding
 import coil.load
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -22,16 +23,19 @@ fun ImageView.poster(movie: Movie) {
 
 fun bindMovie(activity: Activity, binding: MovieCardBinding, movie: Movie) {
     binding.poster.poster(movie)
+    binding.backdrop.poster(movie)
     binding.title.text = movie.title
-    binding.metadata.text = movie.metadata()
-    binding.ratings.text = movie.ratings()
+    binding.metadata.text = "${movie.year}  ·  ${movie.runtime?.let { "$it min" } ?: "Duração N/D"}"
+    binding.genres.text = movie.genres.joinToString("  /  ") { it.name }
+    binding.imdb.text = "IMDb  ${movie.imdb_rating ?: "N/D"}"
+    binding.rotten.text = "Rotten Tomatoes  ${movie.rotten_tomatoes_rating?.let { "$it%" } ?: "N/D"}"
     binding.plot.text = movie.plot
     binding.plot.maxLines = 3
-    binding.expand.text = "Ler mais"
+    binding.expand.text = "Ler sinopse completa"
     binding.expand.setOnClickListener {
         val expand = binding.plot.maxLines == 3
         binding.plot.maxLines = if (expand) Int.MAX_VALUE else 3
-        binding.expand.text = if (expand) "Ler menos" else "Ler mais"
+        binding.expand.text = if (expand) "Recolher sinopse" else "Ler sinopse completa"
     }
     binding.cast.text = "Elenco: " + movie.cast.joinToString(", ") { it.actor_name }.ifBlank { "N/D" }
     binding.share.setOnClickListener {
@@ -40,8 +44,8 @@ fun bindMovie(activity: Activity, binding: MovieCardBinding, movie: Movie) {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, "${movie.title} (${movie.year})\n${movie.plot}$link\nDescoberto no CineMatch")
         }
-        try { activity.startActivity(Intent.createChooser(share, "Compartilhar filme")) }
-        catch (_: ActivityNotFoundException) { Toast.makeText(activity, "Nenhum aplicativo de compartilhamento disponível.", Toast.LENGTH_LONG).show() }
+        try { Profile.externalFlow = true; activity.startActivity(Intent.createChooser(share, "Compartilhar filme")) }
+        catch (_: ActivityNotFoundException) { Profile.externalFlow = false; Toast.makeText(activity, "Nenhum aplicativo de compartilhamento disponível.", Toast.LENGTH_LONG).show() }
     }
 }
 

@@ -2,7 +2,7 @@ package br.com.cinematch.ui
 
 import android.os.Bundle
 import android.view.View
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager
 import br.com.cinematch.data.Repository
 import br.com.cinematch.databinding.ActivityListBinding
 
@@ -13,9 +13,9 @@ class RecommendationsActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityListBinding.inflate(layoutInflater)
         screen(binding.root, "Escolhidos para você")
-        binding.heading.text = "A sua próxima sessão"
-        binding.description.text = "Recomendações que acompanham o seu gosto. Toque em um filme para conhecer a história."
-        binding.list.layoutManager = LinearLayoutManager(this)
+        binding.heading.text = "O seu próximo favorito."
+        binding.description.text = "Uma seleção que acompanha o seu gosto, filme a filme."
+        binding.list.layoutManager = GridLayoutManager(this, if (resources.configuration.screenWidthDp >= 720) 2 else 1)
         binding.list.adapter = adapter
     }
     override fun onResume() {

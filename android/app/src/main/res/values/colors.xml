@@ -1,11 +1,8 @@
 <resources>
-    <color name="background">#101116</color>
-    <color name="surface">#1D1F28</color>
-    <color name="accent">#FF4F69</color>
-    <color name="text">#F6F3F4</color>
-    <color name="muted">#BFC0CC</color>
-    <color name="skip">#B4B9C8</color>
-    <color name="dislike">#FF8391</color>
-    <color name="watch">#F2CD79</color>
-    <color name="like">#8BDDB4</color>
+    <color name="background">#090E17</color><color name="surface">#151E2C</color>
+    <color name="surface_raised">#202C3E</color><color name="outline">#2B394D</color>
+    <color name="accent">#FF6854</color><color name="text">#F5F4F0</color>
+    <color name="muted">#9DAAC0</color><color name="skip">#B2BDD0</color>
+    <color name="dislike">#FF8C9A</color><color name="watch">#F2CB81</color>
+    <color name="like">#8BDEBB</color>
 </resources>

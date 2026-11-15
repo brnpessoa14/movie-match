@@ -1,4 +1,5 @@
 import pytest
+from uuid import uuid4
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import sessionmaker
@@ -26,10 +27,11 @@ def api(tmp_path, monkeypatch):
 
 
 def new_user(client):
-    response = client.post("/users", json={"name": "  Bruno  "})
+    response = client.post("/auth/register", json={"name": "  Bruno  ", "username": "user_" + uuid4().hex[:10], "password": "TesteSenha123!"})
     assert response.status_code == 201
-    assert response.json()["name"] == "Bruno"
-    return response.json()["id"]
+    assert response.json()["user"]["name"] == "Bruno"
+    client.headers["Authorization"] = "Bearer " + response.json()["access_token"]
+    return response.json()["user"]["id"]
 
 
 def test_profile_catalog_and_preferences(api):
@@ -92,8 +94,8 @@ def test_validation_and_ownership(api):
     c, _ = api
     uid = new_user(c)
     for name in [" ", "x" * 81]:
-        assert c.post("/users", json={"name": name}).status_code == 422
-    assert c.get("/users/99999").status_code == 404
+        assert c.post("/auth/register", json={"name": name, "username": "another", "password": "TesteSenha123!"}).status_code == 422
+    assert c.get("/users/99999").status_code == 403
     assert c.get("/movies/99999").status_code == 404
     assert c.put(f"/users/{uid}/preferences", json={"genre_ids": [999]}).status_code == 422
     assert c.post("/evaluations", json={"user_id": uid, "movie_id": 9999, "status": "GOSTEI"}).status_code == 404
@@ -117,6 +119,7 @@ def test_persistence_after_restart_and_seed(api):
         assert db.scalars(select(Evaluation).where(Evaluation.user_id == uid)).one().status == "GOSTEI"
     fresh.dispose()
     with TestClient(main.app) as restarted:
+        restarted.headers["Authorization"] = c.headers["Authorization"]
         assert len(restarted.get(f"/users/{uid}/evaluations").json()) == 1
 
 

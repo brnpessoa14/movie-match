@@ -1,0 +1,4 @@
+<resources>
+    <dimen name="poster_height">330dp</dimen>
+    <dimen name="login_hero_height">156dp</dimen>
+</resources>

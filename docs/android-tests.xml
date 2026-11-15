@@ -1,9 +1,10 @@
 <?xml version='1.0' encoding='UTF-8' ?>
-<testsuites tests="1" failures="0" errors="0" skipped="0" time="0.000" timestamp="2026-11-14T21:31:44" hostname="localhost">
-  <testsuite name="br.com.cinematch.CineMatchFlowTest" tests="1" failures="0" errors="0" skipped="0" time="12.861" timestamp="2026-11-14T21:31:44" hostname="localhost">
+<testsuites tests="2" failures="0" errors="0" skipped="0" time="0.000" timestamp="2026-11-14T22:23:11" hostname="localhost">
+  <testsuite name="br.com.cinematch.CineMatchFlowTest" tests="2" failures="0" errors="0" skipped="0" time="40.480" timestamp="2026-11-14T22:23:11" hostname="localhost">
     <properties>
       <property name="device" value="emulator-5554" />
     </properties>
-    <testcase name="fullFlowWithRealBackend" classname="br.com.cinematch.CineMatchFlowTest" time="12.861" />
+    <testcase name="responsiveLayouts" classname="br.com.cinematch.CineMatchFlowTest" time="5.853" />
+    <testcase name="fullFlowWithRealBackend" classname="br.com.cinematch.CineMatchFlowTest" time="34.627" />
   </testsuite>
 </testsuites>

@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager
 import br.com.cinematch.R
 import br.com.cinematch.data.*
 import br.com.cinematch.databinding.ActivityListBinding
@@ -19,11 +19,13 @@ class HistoryActivity : BaseActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityListBinding.inflate(layoutInflater)
         screen(binding.root, "Sua história com o cinema")
-        binding.heading.text = "Minha lista"
-        binding.description.text = "Os que você quer ver. Os que ficaram na memória. Suas escolhas estão aqui."
-        binding.list.layoutManager = LinearLayoutManager(this)
+        binding.eyebrow.text = "SUA COLEÇÃO PESSOAL"
+        binding.heading.text = "Histórias que ficam."
+        binding.description.text = "Guarde os próximos encontros. Reveja os que já aconteceram."
+        binding.list.layoutManager = GridLayoutManager(this, if (resources.configuration.screenWidthDp >= 720) 2 else 1)
         binding.list.adapter = adapter
         binding.filter.visibility = View.VISIBLE
+        binding.filterContainer.visibility = View.VISIBLE
         binding.filter.adapter = ArrayAdapter(this, R.layout.item_status, listOf("Todas as avaliações") + statuses.map { it.label })
         binding.filter.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) { render() }

@@ -5,6 +5,7 @@ local.properties
 .venv/
 __pycache__/
 .pytest_cache/
+.pytest-tmp/
 *.pyc
 *.db
 *.db-*

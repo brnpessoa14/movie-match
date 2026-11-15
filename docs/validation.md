@@ -1,93 +1,88 @@
-# Validação e entrega — 14/11/2026
+# Validação — CineMatch 2.0
 
-Diretório final: **D:\movie-match**. A pasta `.idea` que já existia foi preservada. O projeto foi implementado e inicialmente testado em uma pasta temporária do workspace autorizado; os fontes finais foram copiados e o backend, a compilação e o Lint foram verificados também no diretório final. O APK final está em `android/app/build/outputs/apk/debug/app-debug.apk`.
+Atualização de 14/11/2026. Diretório final: **D:\movie-match**. APK: `android/app/build/outputs/apk/debug/app-debug.apk`, versionCode 2/versionName 2.0.
 
 ## Implementado e verificado
 
-- Cinco Activities nativas Kotlin com XML: início, preferências, descoberta, recomendações e histórico.
-- Intents explícitas para navegação; `ACTION_SEND`/`createChooser` para compartilhamento, com captura da Intent pelo teste. Nenhum conteúdo foi enviado a um aplicativo externo.
-- Views variadas, interface em português, tema escuro, carregamento, estados vazios, feedback, botões desabilitados durante requisições e nova tentativa em erros.
-- Cadastro e recuperação do perfil salvo; consulta e edição posterior de gêneros.
-- Catálogo persistido com 20 títulos reais e 11 gêneros, duração, elenco e sinopses próprias. Ausência de cartazes/notas identificada com ilustração original e N/D.
-- Quatro avaliações com significados distintos, unicidade usuário/filme e avanço somente após confirmação da API.
-- Recomendações personalizadas, determinísticas e explicáveis; exclusão de todos os títulos já avaliados.
-- Histórico, filtro “quero assistir”, alteração e exclusão de avaliações.
-- FastAPI com CRUD, JSON/Pydantic, Swagger/OpenAPI e SQLite/SQLAlchemy, FKs e restrições de integridade.
-- API real → arquivo SQLite → API real → Android no emulador Android 17/API 37.
-- README, arquitetura, roteiro oral, fontes do catálogo e seis capturas reais, sem imagens simuladas apresentadas como screenshots.
+- Nova identidade visual: azul escuro, coral, tipografia consistente, cartazes reais, fundos cinematográficos, cards de gêneros e navegação inferior arredondada.
+- Cinco Activities Kotlin/XML preservadas, com Intents explícitas e compartilhamento ACTION_SEND/createChooser.
+- Login com nome de usuário e senha, cadastro, confirmação da senha, validação, menu de conta e logout.
+- Abertura no login; IDs gravados pelo protótipo antigo são ignorados. Ao sair para o segundo plano e voltar, são exigidas credenciais novamente. Rotação, navegação interna e seletor de compartilhamento mantêm a sessão em uso.
+- Senha derivada com PBKDF2-HMAC-SHA256/salt individual, sessão móvel somente em memória e tokens do backend armazenados apenas como hash.
+- Autorização nas rotas privadas: uma conta não consegue acessar dados de outra alterando o ID da requisição.
+- Preferências, quatro avaliações, recomendações, histórico, filtro, alteração e exclusão continuam integrados à API/SQLite.
+- Cadastro e login de uma segunda conta não mostram o histórico da primeira. Entrar novamente na primeira recupera suas avaliações.
+- Layout compacto, layout horizontal com painel lateral e recomendações em duas colunas em telas largas.
+- Os 20 filmes, cartazes e notas importados anteriormente da OMDb continuam no banco. Esta atualização não fez novas consultas à OMDb.
+- Processo Android encerrado e relançado: abriu MainActivity/login, sem entrar no perfil demonstrativo.
 
-### Resultados efetivos
+## Resultados efetivos
 
 | Verificação | Resultado |
 |---|---|
-| Pytest no diretório final | **11 passed**, 1 aviso de depreciação do cliente de teste Starlette/httpx |
-| `assembleDebug` em D:\movie-match\android | **BUILD SUCCESSFUL** |
-| `lintDebug` no diretório final | **BUILD SUCCESSFUL**, zero erros, 29 avisos não bloqueantes |
-| Teste Android `fullFlowWithRealBackend` | **1 teste aprovado**, zero falhas, em emulador API 37 |
-| Swagger no navegador | `/docs` carregou e GET `/health` executado com HTTP 200, `{"status":"ok"}` |
-| Reinício real do processo HTTP | Aprovado no teste `test_live_http_server_survives_restart`: mesmo histórico, recomendações, preferências e catálogo após novo processo |
-| Reinício real do processo Android | `am force-stop`, relançamento de MainActivity e retorno a DiscoveryActivity; ID 7 e 3 avaliações preservados |
-| Banco da pasta final | Dados demonstrativos preservados via backup SQLite; API iniciada a partir de `D:\movie-match\backend` |
+| Pytest no diretório final | **15 testes aprovados**, 1 aviso de depreciação Starlette/httpx |
+| `assembleDebug` em D:\movie-match\android | **BUILD SUCCESSFUL**, APK 2.0 gerado e instalado |
+| `lintDebug` | **Zero erros**, 32 avisos não bloqueantes, sem baseline para ocultá-los |
+| Android — fluxo completo + layout normal | **2 testes aprovados**, zero falhas |
+| Android — 360 × 640 dp | **1 execução do teste de layout aprovada**; login rolável, título e quatro ações acessíveis |
+| Android — 853 × 533 dp horizontal | **1 execução do teste de layout aprovada**; painel lateral e lista em duas colunas |
+| Reinício HTTP real | Aprovado pelo Pytest; dados e sessão continuam no banco após reiniciar o processo |
+| Reinício do processo Android | Volta ao login, conforme a nova regra |
+| Comparação do banco com o backup | Todas as linhas originais preservadas nas sete tabelas anteriores |
 
-O teste instrumentado percorre cadastro, seleção de gênero, quatro status, exclusão dos avaliados das recomendações, detalhes, compartilhamento, filtro, alteração, exclusão, edição posterior de preferências e relançamento do início com o mesmo perfil. Há verificações diretas na API além das interações da interface. O teste não utiliza uma API simulada.
+O teste completo inclui cadastro, gêneros, quatro avaliações, recomendações sem títulos já avaliados, detalhes, compartilhamento, filtro, alteração/exclusão, edição das preferências, logout, senha incorreta, novo login, segunda conta e retorno ao login depois de sair para a tela inicial do Android. O teste de layout também confere a quantidade de colunas das recomendações conforme a largura disponível.
 
-Os 29 avisos de Lint incluem sugestões de atualização de dependências/target, internacionalização adicional, otimização do adaptador e recursos/tema. Não foram suprimidos por uma baseline. O aviso Python diz respeito ao adaptador de teste Starlette/httpx e não impediu os testes. Não se afirma ausência de avisos.
+As execuções em tamanhos diferentes são repetições do teste de responsividade, e não quatro testes distintos de negócio. O tamanho normal do emulador foi restaurado ao concluir.
 
-### Evidências incluídas
+## Evidências
 
-- `docs/backend-tests.xml`: relatório JUnit dos 11 testes Python.
-- `docs/android-tests.xml`: relatório do teste instrumentado.
-- `docs/restart-check.json`: verificação de recuperação do perfil após encerrar o processo Android.
-- `docs/lint-results-debug.xml`: relatório final do Lint.
-- `docs/screenshots/01-inicio.png` a `06-compartilhar.png`: capturas reais das cinco Activities e do diálogo com o botão de compartilhamento. A sexta captura mostra os detalhes do filme; não é apresentada como captura do seletor do sistema.
+- `docs/backend-tests.xml`: 15 testes Python.
+- `docs/android-tests.xml`: 2 testes Android da versão final.
+- `docs/android-tests-compact.xml` e `docs/android-tests-wide.xml`: execuções específicas de responsividade.
+- `docs/lint-results-debug.xml`: Lint final, sem erros e com avisos registrados.
+- `docs/data-preservation.json`: comparação por linhas com o backup anterior à criação das contas.
+- `docs/restart-check.json`: nova política de login após reinício.
+- `docs/screenshots/01-inicio.png` a `09-login-processo-reiniciado.png`: telas reais de login, gêneros, descoberta, recomendações, lista, compartilhamento, cadastro e reabertura.
+- `docs/screenshots/responsive-compact-*`, `responsive-normal-*` e `responsive-wide-*`: capturas reais das adaptações.
 
-## Integração OMDb verificada
+A sexta captura corresponde ao fluxo de detalhes/compartilhamento. Nenhum compartilhamento foi enviado a um aplicativo externo. As capturas não são mockups.
 
-A chave foi configurada em `backend/.env`, ignorado pelo Git. O comando `python -m app.enrich` foi executado contra a OMDb real com **20 consultas**, uma por filme. Os 20 títulos receberam cartazes, notas IMDb e notas Rotten Tomatoes. Os dados foram persistidos no SQLite e verificados também por GET `/movies` na API em execução. Evidência agregada: `docs/omdb-check.json`, sem credenciais.
+## Preservação e uso das contas
 
-O Android já consome esses campos; não é necessário recompilar para atualizar os filmes. Ao retornar à descoberta ou às recomendações, o app consulta a API novamente. A busca de cartazes requer internet no dispositivo. O tratamento de N/D e o catálogo local continuam disponíveis se algum dado faltar em futuras importações.
+Antes de atualizar, foi criado o backup local `.tools/backups/before-accounts.db`, ignorado pelo Git. A comparação confirmou a preservação de **7 perfis antigos, 20 filmes, 11 gêneros, 52 associações de gêneros, 60 registros de elenco, 8 preferências e 18 avaliações**. A chave OMDb em `.env` foi mantida e não faz parte do código ou do commit.
 
-O build de entrega é **debug para desenvolvimento local**, com HTTP habilitado somente nesse tipo de build. Release assinado/HTTPS, publicação em loja e dispositivo físico não foram validados e não são apresentados como concluídos.
+Perfis antigos sem senha continuam no banco, mas não oferecem entrada automática nem são assumidos por uma conta recém-criada. Na primeira utilização da versão 2.0, toque em **Criar conta**. A conta cadastrada pode ser acessada novamente com o mesmo usuário e senha; suas próprias avaliações ficam persistidas. As contas criadas pelos testes são apenas demonstrativas.
 
-## Pendente
+## Limites e pendências
 
-- **GitHub público:** projeto preparado em Git local. Falta criar/selecionar o repositório remoto e autorizar/publicar. Nenhum repositório público foi criado nem anunciado.
-- **Apresentação oral:** o roteiro foi entregue, mas domínio e apresentação precisam ser realizados pelo estudante.
-- **Bônus:** dispositivo físico, Play Store e nuvem não foram executados. A demonstração local foi priorizada.
+- A API deve estar ligada e acessível para usar catálogo, conta e histórico. O build debug usa HTTP local; distribuição externa exige HTTPS e configuração de produção.
+- Não há recuperação de senha por e-mail ou autenticação social nesta versão.
+- Dispositivo físico, release assinado, Play Store e deploy em nuvem não foram validados nesta atualização.
+- Publicação do repositório no GitHub continua pendente de autorização e configuração do remoto. O projeto está em Git local.
+- A apresentação oral e o domínio do código precisam ser realizados pelo estudante; há um roteiro atualizado em `docs/presentation.md`.
 
-O perfil instalado no emulador é demonstrativo, criado pelos testes. O banco contém registros desses testes de integração e está ignorado pelo Git. A API não implementa autenticação; use esta configuração para demonstração local.
+## Critérios AP2
 
-## Checklist dos critérios AP2
+| Critério | Evidência |
+|---|---|
+| Cinco Activities | Main, Preferences, Discovery, Recommendations e History |
+| Intents explícitas e implícita | Navegação e ACTION_SEND/createChooser |
+| Pelo menos seis Views | TextView, EditText, Button, ImageView, CheckBox, RecyclerView, ProgressBar, CardView, Spinner, ScrollView, GridLayout |
+| Interface organizada | Capturas reais e testes em três configurações de tela |
+| API REST/OpenAPI | FastAPI, Retrofit, autenticação Bearer, CRUD e Swagger |
+| Banco relacional | SQLite/SQLAlchemy, nove tabelas, FKs, unicidade e persistência verificada |
+| Organização e qualidade | Módulos separados, testes e documentação atualizada |
+| README/screenshots | Incluídos |
+| GitHub público | Pendente de publicação |
+| Apresentação oral | Roteiro entregue; apresentação pendente |
 
-| Critério | Peso | Evidência / situação |
-|---|---:|---|
-| Funcionamento geral | 1,0 | Fluxo real aprovado no emulador com a API |
-| Pelo menos 5 Activities | 1,5 | Cinco classes registradas no manifesto e percorridas no teste |
-| Intents explícitas e implícita | 1,0 | Navegação explícita e compartilhamento ACTION_SEND |
-| Interface e UX | 1,0 | Tema, diferentes Views, feedback e capturas reais; avaliação qualitativa cabe ao professor |
-| API REST | 1,0 | Retrofit/FastAPI, CRUD e Swagger, integração testada |
-| Banco relacional | 1,0 | SQLite/SQLAlchemy, FKs, unicidade e reinício verificado |
-| Organização e qualidade | 1,0 | Pacotes/módulos separados, testes e documentação |
-| Apresentação e domínio | 2,5 | Roteiro entregue; apresentação pelo estudante pendente |
-| Pelo menos 6 Views | Obrigatório | TextView, EditText, Button, ImageView, CheckBox, RecyclerView, ProgressBar, CardView, Spinner |
-| Swagger/OpenAPI | Obrigatório | /docs e /openapi.json verificados |
-| README e screenshots | Obrigatório | README e seis PNGs reais incluídos |
-| Repositório GitHub público | Obrigatório | **Pendente de publicação** |
+## Executar
 
-Os pesos representam os critérios da atividade, não uma nota atribuída ao projeto.
-
-## Comandos de execução
+Abra **D:\movie-match\android** no Android Studio e execute `app` com ▶. Na primeira abertura, use Criar conta. Se a API não estiver em execução:
 
 ```powershell
 cd D:\movie-match
 .\start-backend.ps1
 ```
 
-Se precisar recriar o ambiente Python: `.\setup.ps1 -Python 'C:\caminho\python.exe'` com Python 3.12+. No momento da entrega, o ambiente `.venv` já está instalado e a API está em execução na porta 8000.
-
-```powershell
-cd D:\movie-match\android
-.\build.ps1
-```
-
-Abra `D:\movie-match\android` no Android Studio e execute `app` no emulador. URL padrão: `http://10.0.2.2:8000/`. Para os comandos de testes, USB, OMDb e publicação, consulte o README.
+O emulador usa `http://10.0.2.2:8000/`; o Swagger no computador fica em `http://localhost:8000/docs`. Consulte o README para comandos de build, testes e conexão USB.

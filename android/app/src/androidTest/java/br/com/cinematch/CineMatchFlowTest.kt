@@ -18,6 +18,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import androidx.recyclerview.widget.RecyclerView
 import br.com.cinematch.data.*
 import br.com.cinematch.ui.MainActivity
+import br.com.cinematch.ui.DiscoveryActivity
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.Matchers.allOf
 import org.junit.Assert.*
@@ -25,6 +26,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
 import java.io.FileOutputStream
+import android.graphics.drawable.BitmapDrawable
+import coil.drawable.CrossfadeDrawable
 
 /** Teste real: exige backend ligado em 10.0.2.2:8000. Não usa API simulada. */
 @RunWith(AndroidJUnit4::class)
@@ -46,6 +49,8 @@ class CineMatchFlowTest {
     }
 
     private fun screenshot(name: String) {
+        instrumentation.waitForIdleSync()
+        Thread.sleep(350) // Aguarda a apresentação do frame após layout/transição.
         val bitmap = instrumentation.uiAutomation.takeScreenshot()
         val output = InstrumentationRegistry.getArguments().getString("additionalTestOutputDir")
             ?.let { File(it).apply { mkdirs() } } ?: context.getExternalFilesDir(null)
@@ -70,6 +75,37 @@ class CineMatchFlowTest {
         onData(org.hamcrest.Matchers.equalTo(label)).perform(click())
     }
 
+    private fun fill(id: Int, text: String) {
+        onView(withId(id)).perform(scrollTo(), replaceText(text), androidx.test.espresso.action.ViewActions.closeSoftKeyboard())
+    }
+
+    private fun login(username: String, password: String) {
+        waitScreen(R.id.username)
+        fill(R.id.username, username)
+        fill(R.id.password, password)
+        onView(withId(R.id.start)).perform(scrollTo(), click())
+    }
+
+    private fun logout() {
+        onView(withId(R.id.account)).perform(click())
+        onView(withText("Sair da conta")).inRoot(isDialog()).perform(click())
+        waitScreen(R.id.username)
+        assertEquals(0, Profile(context).id)
+    }
+
+    private fun waitForPoster() {
+        val until = System.currentTimeMillis() + 12000
+        while (System.currentTimeMillis() < until) {
+            try {
+                onView(withId(R.id.hero_center)).check { view, _ ->
+                    val drawable = (view as android.widget.ImageView).drawable
+                    assertTrue(drawable is BitmapDrawable || drawable is CrossfadeDrawable)
+                }
+                return
+            } catch (_: Throwable) { Thread.sleep(200) }
+        }
+    }
+
     private fun childClick(id: Int) = object : androidx.test.espresso.ViewAction {
         override fun getConstraints() = isAssignableFrom(View::class.java)
         override fun getDescription() = "Clicar no controle filho $id"
@@ -80,11 +116,21 @@ class CineMatchFlowTest {
     }
 
     @Test fun fullFlowWithRealBackend() {
-        context.getSharedPreferences("profile", Context.MODE_PRIVATE).edit().clear().commit()
+        // A sessão antiga do protótipo não pode permitir entrada automática.
+        context.getSharedPreferences("profile", Context.MODE_PRIVATE).edit().putInt("user_id", 7).putBoolean("ready", true).commit()
         val scenario = ActivityScenario.launch(MainActivity::class.java)
-        waitScreen(R.id.start)
+        waitScreen(R.id.username)
+        assertEquals(0, Profile(context).id)
+        waitForPoster()
         screenshot("01-inicio")
-        onView(withId(R.id.name)).perform(replaceText("Demonstração AP2"), androidx.test.espresso.action.ViewActions.closeSoftKeyboard())
+        val username = "ui_" + System.currentTimeMillis().toString().takeLast(10)
+        val password = "CinemaSenha123!"
+        onView(withId(R.id.register_tab)).perform(scrollTo(), click())
+        fill(R.id.name, "Pessoa de teste")
+        fill(R.id.username, username)
+        fill(R.id.password, password)
+        fill(R.id.confirm_password, password)
+        screenshot("07-cadastro")
         onView(withId(R.id.start)).perform(scrollTo(), click())
         waitScreen(R.id.save)
         screenshot("02-generos")
@@ -141,11 +187,74 @@ class CineMatchFlowTest {
         onView(withId(R.id.save)).perform(click())
         waitScreen(R.id.like)
         assertTrue(runBlocking { Repository.api.preferences(uid) }.any { it.name == "Comédia" })
+        logout()
+        login(username, "SenhaIncorreta123!")
+        waitScreen(R.id.error_text)
+        login(username, password)
+        waitScreen(R.id.like)
+        assertEquals(uid, Profile(context).id)
+        assertEquals(3, runBlocking { Repository.api.history(uid) }.size)
+        logout()
+        onView(withId(R.id.register_tab)).perform(scrollTo(), click())
+        fill(R.id.name, "Outra pessoa")
+        fill(R.id.username, username + "_b")
+        fill(R.id.password, password)
+        fill(R.id.confirm_password, password)
+        onView(withId(R.id.start)).perform(scrollTo(), click())
+        waitScreen(R.id.save)
+        assertTrue(Profile(context).id != uid)
+        assertTrue(runBlocking { Repository.api.history(Profile(context).id) }.isEmpty())
+        onView(withId(R.id.save)).perform(click())
+        waitScreen(R.id.like)
+        logout()
         scenario.close()
         ActivityScenario.launch(MainActivity::class.java).use {
+            waitScreen(R.id.username)
+            assertEquals(0, Profile(context).id)
+            login(username, password)
             waitScreen(R.id.like)
             assertEquals(uid, Profile(context).id)
             assertEquals(3, runBlocking { Repository.api.history(uid) }.size)
+            // Sair para a tela inicial e abrir o app novamente exige credenciais.
+            instrumentation.sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_HOME)
+            val until = System.currentTimeMillis() + 5000
+            while (Profile(context).id != 0 && System.currentTimeMillis() < until) Thread.sleep(100)
+            assertEquals(0, Profile(context).id)
+            context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+            waitScreen(R.id.username)
+            screenshot("08-login-ao-reabrir")
         }
+    }
+
+    @Test fun responsiveLayouts() {
+        val variant = InstrumentationRegistry.getArguments().getString("layoutVariant") ?: "normal"
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        waitScreen(R.id.username)
+        waitForPoster()
+        screenshot("responsive-$variant-login")
+        onView(withId(R.id.start)).perform(scrollTo()).check(matches(isCompletelyDisplayed()))
+        val auth = runBlocking { Repository.api.register(RegisterInput("Teste de layout", "layout_" + System.currentTimeMillis().toString().takeLast(10), "CinemaSenha123!")) }
+        Profile(context).save(auth)
+        runBlocking { Repository.api.savePreferences(auth.user.id, PreferencesInput(listOf(1, 8))) }
+        Profile(context).complete()
+        scenario.onActivity {
+            it.startActivity(Intent(it, DiscoveryActivity::class.java))
+            it.finish()
+        }
+        waitScreen(R.id.like)
+        listOf(R.id.skip, R.id.dislike, R.id.watch, R.id.like, R.id.nav_history).forEach { id ->
+            onView(withId(id)).check(matches(isCompletelyDisplayed()))
+        }
+        onView(withId(R.id.title)).check(matches(isCompletelyDisplayed()))
+        screenshot("responsive-$variant-discovery")
+        onView(withId(R.id.nav_recommendations)).perform(click())
+        waitScreen(R.id.list)
+        onView(withId(R.id.list)).check { view, _ ->
+            val manager = (view as RecyclerView).layoutManager as androidx.recyclerview.widget.GridLayoutManager
+            assertEquals(if (context.resources.configuration.screenWidthDp >= 720) 2 else 1, manager.spanCount)
+        }
+        screenshot("responsive-$variant-recommendations")
+        logout()
+        scenario.close()
     }
 }

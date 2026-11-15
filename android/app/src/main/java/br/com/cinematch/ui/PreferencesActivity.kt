@@ -3,6 +3,7 @@ package br.com.cinematch.ui
 import android.content.Intent
 import android.os.Bundle
 import android.widget.CheckBox
+import android.widget.GridLayout
 import androidx.core.content.ContextCompat
 import br.com.cinematch.R
 import br.com.cinematch.data.PreferencesInput
@@ -36,13 +37,35 @@ class PreferencesActivity : BaseActivity() {
                 val check = MaterialCheckBox(this).apply {
                     text = genre.name
                     setTextColor(ContextCompat.getColor(this@PreferencesActivity, R.color.text))
-                    textSize = 17f
-                    minHeight = (52 * resources.displayMetrics.density).toInt()
+                    textSize = 14f
+                    minHeight = (72 * resources.displayMetrics.density).toInt()
+                    val pad = (10 * resources.displayMetrics.density).toInt()
+                    setPadding(pad, pad, pad, pad)
+                    setBackgroundResource(R.drawable.genre_selected)
+                    buttonTintList = ContextCompat.getColorStateList(this@PreferencesActivity, R.color.nav_tint)
                     isChecked = genre.id in selected
+                    layoutParams = GridLayout.LayoutParams().apply {
+                        width = 0
+                        height = GridLayout.LayoutParams.WRAP_CONTENT
+                        columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
+                        val gap = (5 * resources.displayMetrics.density).toInt()
+                        setMargins(gap, gap, gap, gap)
+                    }
+                    setOnCheckedChangeListener { _, _ -> updateCount() }
                 }
                 checks[genre.id] = check
                 binding.genres.addView(check)
             }
+            updateCount()
+        }
+    }
+
+    private fun updateCount() {
+        val count = checks.values.count { it.isChecked }
+        binding.selectionCount.text = when (count) {
+            0 -> "Escolha quantos gêneros quiser"
+            1 -> "1 gênero selecionado"
+            else -> "$count gêneros selecionados"
         }
     }
 }

@@ -32,6 +32,33 @@ class UserOut(OrmSchema):
     created_at: datetime
 
 
+class LoginInput(BaseModel):
+    username: str = Field(min_length=3, max_length=32, pattern=r"^[a-z0-9_.-]+$")
+    password: str = Field(min_length=8, max_length=128)
+
+    @field_validator("username", mode="before")
+    @classmethod
+    def clean_username(cls, value):
+        return value.strip().lower() if isinstance(value, str) else value
+
+
+class RegisterInput(LoginInput):
+    name: str = Field(min_length=1, max_length=80)
+
+    @field_validator("name")
+    @classmethod
+    def clean_name(cls, value):
+        return UserInput.clean_name(value)
+
+
+class AuthOut(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    user: UserOut
+    username: str
+    preferences_ready: bool
+
+
 class GenreOut(OrmSchema):
     id: int
     name: str

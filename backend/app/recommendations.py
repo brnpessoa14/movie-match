@@ -21,11 +21,11 @@ def recommend(db, user, limit):
         score = sum(weights[g.id] for g in movie.genres) / max(len(movie.genres), 1)
         positive = [g.name for g in movie.genres if weights[g.id] > 0]
         if positive:
-            reason = "Seu perfil atribui peso positivo a: " + ", ".join(positive) + "."
+            reason = "Combina com o seu gosto por " + ", ".join(positive) + "."
         elif not user.preferences and not evaluations:
-            reason = "Sugestão inicial do catálogo. Selecione gêneros ou avalie filmes para personalizar."
+            reason = "Um primeiro encontro com o catálogo. Suas escolhas deixam as próximas sugestões mais pessoais."
         else:
-            reason = "Alternativa do catálogo para explorar outros títulos; sem afinidade positiva nos gêneros atuais."
+            reason = "Um convite para explorar algo diferente dos seus gêneros favoritos."
         results.append({"movie": movie, "score": round(score, 4), "reason": reason})
     # Média evita favorecer filmes só por terem mais gêneros; ID desempata.
     return sorted(results, key=lambda r: (-r["score"], r["movie"].id))[:limit]

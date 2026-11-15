@@ -27,7 +27,7 @@ class DiscoveryActivity : BaseActivity() {
                         message("Avaliação salva: ${status.label}")
                     }
                     // A tentativa seguinte só recarrega se a avaliação já foi confirmada.
-                    display(Repository.api.discovery(profile.id).firstOrNull())
+                    nextMovie()
                 }
             }
         }
@@ -39,7 +39,13 @@ class DiscoveryActivity : BaseActivity() {
     }
 
     private fun load() {
-        request { display(Repository.api.discovery(profile.id).firstOrNull()) }
+        request { nextMovie() }
+    }
+
+    private suspend fun nextMovie() {
+        val movies = Repository.api.discovery(profile.id)
+        binding.counter.text = "${movies.size} para explorar"
+        display(movies.firstOrNull())
     }
 
     private fun display(movie: Movie?) {

@@ -7,6 +7,9 @@ import androidx.recyclerview.widget.RecyclerView
 import br.com.cinematch.data.Evaluation
 import br.com.cinematch.data.Movie
 import br.com.cinematch.databinding.ItemMovieBinding
+import androidx.core.content.ContextCompat
+import br.com.cinematch.R
+import br.com.cinematch.data.EvaluationStatus
 
 data class MovieRow(val movie: Movie, val description: String, val evaluation: Evaluation? = null)
 
@@ -28,6 +31,13 @@ class MovieAdapter(
             metadata.text = row.movie.metadata()
             ratings.text = row.movie.ratings()
             reason.text = row.description
+            val color = when (row.evaluation?.status) {
+                EvaluationStatus.GOSTEI -> R.color.like
+                EvaluationStatus.QUERO_ASSISTIR -> R.color.watch
+                EvaluationStatus.NAO_GOSTEI -> R.color.dislike
+                else -> R.color.muted
+            }
+            reason.setTextColor(ContextCompat.getColor(root.context, color))
             details.setOnClickListener { this@MovieAdapter.details(row.movie) }
             editActions.visibility = if (row.evaluation == null) View.GONE else View.VISIBLE
             edit.setOnClickListener { row.evaluation?.let(this@MovieAdapter.edit) }

@@ -10,6 +10,7 @@ from . import models as m, schemas as s
 from .catalog import seed
 from .database import Base, SessionLocal, engine, get_db
 from .recommendations import recommend
+from .auth import SessionAuth, authorize, DUMMY_HASH, hash_password, issue_session, verify_password
 
 
 @asynccontextmanager
@@ -20,8 +21,8 @@ async def lifespan(app):
     yield
 
 
-app = FastAPI(title="CineMatch API", version="1.0.0", lifespan=lifespan,
-    description="API acadêmica local: perfis sem senha, catálogo, avaliações e recomendações explicáveis. Não expor publicamente sem autenticação.")
+app = FastAPI(title="CineMatch API", version="2.0.0", lifespan=lifespan,
+    description="Contas com nome de usuário e senha, sessões Bearer, catálogo e recomendações explicáveis.")
 DB = Annotated[Session, Depends(get_db)]
 
 
@@ -38,21 +39,46 @@ def health(db: DB):
     return {"status": "ok"}
 
 
-@app.post("/users", response_model=s.UserOut, status_code=201, tags=["Usuários"])
-def create_user(body: s.UserInput, db: DB):
+@app.post("/auth/register", response_model=s.AuthOut, status_code=201, tags=["Autenticação"])
+def register(body: s.RegisterInput, db: DB):
+    if db.scalar(select(m.Account.id).where(m.Account.username == body.username)):
+        raise HTTPException(409, "Este nome de usuário já está em uso.")
     user = m.User(name=body.name)
-    db.add(user)
+    account = m.Account(user=user, username=body.username, password_hash=hash_password(body.password))
+    db.add(account)
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(409, "Este nome de usuário já está em uso.")
+    return issue_session(db, account)
+
+
+@app.post("/auth/login", response_model=s.AuthOut, tags=["Autenticação"])
+def login(body: s.LoginInput, db: DB):
+    account = db.scalar(select(m.Account).where(m.Account.username == body.username))
+    valid = verify_password(body.password, account.password_hash if account else DUMMY_HASH)
+    if not account or not valid:
+        raise HTTPException(401, "Nome de usuário ou senha incorretos.")
+    return issue_session(db, account)
+
+
+@app.post("/auth/logout", status_code=204, tags=["Autenticação"])
+def logout(session: SessionAuth, db: DB):
+    db.delete(session)
     db.commit()
-    return user
+    return Response(status_code=204)
 
 
 @app.get("/users/{user_id}", response_model=s.UserOut, tags=["Usuários"])
-def get_user(user_id: int, db: DB):
+def get_user(user_id: int, db: DB, session: SessionAuth):
+    authorize(session, user_id)
     return require(db, m.User, user_id)
 
 
 @app.patch("/users/{user_id}", response_model=s.UserOut, tags=["Usuários"])
-def update_user(user_id: int, body: s.UserInput, db: DB):
+def update_user(user_id: int, body: s.UserInput, db: DB, session: SessionAuth):
+    authorize(session, user_id)
     user = require(db, m.User, user_id)
     user.name = body.name
     db.commit()
@@ -65,18 +91,21 @@ def genres(db: DB):
 
 
 @app.get("/users/{user_id}/preferences", response_model=list[s.GenreOut], tags=["Preferências"])
-def preferences(user_id: int, db: DB):
+def preferences(user_id: int, db: DB, session: SessionAuth):
+    authorize(session, user_id)
     return require(db, m.User, user_id).preferences
 
 
 @app.put("/users/{user_id}/preferences", response_model=list[s.GenreOut], tags=["Preferências"])
-def save_preferences(user_id: int, body: s.PreferencesInput, db: DB):
+def save_preferences(user_id: int, body: s.PreferencesInput, db: DB, session: SessionAuth):
+    authorize(session, user_id)
     user = require(db, m.User, user_id)
     ids = set(body.genre_ids)
     selected = db.scalars(select(m.Genre).where(m.Genre.id.in_(ids)).order_by(m.Genre.id)).all()
     if len(selected) != len(ids):
         raise HTTPException(422, "Um ou mais gêneros não existem.")
     user.preferences = selected
+    session.account.preferences_ready = True
     db.commit()
     return selected
 
@@ -88,7 +117,8 @@ def movies(db: DB, offset: int = Query(0, ge=0), limit: int = Query(50, ge=1, le
 
 # Rota estática antes de /movies/{movie_id}.
 @app.get("/movies/discovery", response_model=list[s.MovieOut], tags=["Catálogo"])
-def discovery(user_id: int, db: DB, limit: int = Query(20, ge=1, le=100)):
+def discovery(user_id: int, db: DB, session: SessionAuth, limit: int = Query(20, ge=1, le=100)):
+    authorize(session, user_id)
     require(db, m.User, user_id)
     evaluated = select(m.Evaluation.movie_id).where(m.Evaluation.user_id == user_id)
     return db.scalars(select(m.Movie).where(m.Movie.id.not_in(evaluated)).order_by(m.Movie.id).limit(limit)).all()
@@ -100,7 +130,8 @@ def movie_detail(movie_id: int, db: DB):
 
 
 @app.post("/evaluations", response_model=s.EvaluationOut, status_code=201, tags=["Avaliações"])
-def evaluate(body: s.EvaluationInput, db: DB):
+def evaluate(body: s.EvaluationInput, db: DB, session: SessionAuth):
+    authorize(session, body.user_id)
     require(db, m.User, body.user_id)
     require(db, m.Movie, body.movie_id)
     evaluation = m.Evaluation(user_id=body.user_id, movie_id=body.movie_id, status=body.status.value)
@@ -114,7 +145,8 @@ def evaluate(body: s.EvaluationInput, db: DB):
 
 
 @app.get("/users/{user_id}/evaluations", response_model=list[s.EvaluationOut], tags=["Avaliações"])
-def history(user_id: int, db: DB, status: s.Status | None = None):
+def history(user_id: int, db: DB, session: SessionAuth, status: s.Status | None = None):
+    authorize(session, user_id)
     require(db, m.User, user_id)
     query = select(m.Evaluation).where(m.Evaluation.user_id == user_id)
     if status:
@@ -130,7 +162,8 @@ def owned_evaluation(db, evaluation_id, user_id):
 
 
 @app.patch("/evaluations/{evaluation_id}", response_model=s.EvaluationOut, tags=["Avaliações"])
-def update_evaluation(evaluation_id: int, user_id: int, body: s.EvaluationPatch, db: DB):
+def update_evaluation(evaluation_id: int, user_id: int, body: s.EvaluationPatch, db: DB, session: SessionAuth):
+    authorize(session, user_id)
     evaluation = owned_evaluation(db, evaluation_id, user_id)
     evaluation.status = body.status.value
     db.commit()
@@ -138,17 +171,19 @@ def update_evaluation(evaluation_id: int, user_id: int, body: s.EvaluationPatch,
 
 
 @app.delete("/evaluations/{evaluation_id}", status_code=204, tags=["Avaliações"])
-def delete_evaluation(evaluation_id: int, user_id: int, db: DB):
+def delete_evaluation(evaluation_id: int, user_id: int, db: DB, session: SessionAuth):
+    authorize(session, user_id)
     db.delete(owned_evaluation(db, evaluation_id, user_id))
     db.commit()
     return Response(status_code=204)
 
 
 @app.get("/users/{user_id}/watchlist", response_model=list[s.EvaluationOut], tags=["Avaliações"])
-def watchlist(user_id: int, db: DB):
-    return history(user_id, db, s.Status.QUERO_ASSISTIR)
+def watchlist(user_id: int, db: DB, session: SessionAuth):
+    return history(user_id, db, session, s.Status.QUERO_ASSISTIR)
 
 
 @app.get("/users/{user_id}/recommendations", response_model=list[s.RecommendationOut], tags=["Recomendações"])
-def recommendations(user_id: int, db: DB, limit: int = Query(20, ge=1, le=100)):
+def recommendations(user_id: int, db: DB, session: SessionAuth, limit: int = Query(20, ge=1, le=100)):
+    authorize(session, user_id)
     return recommend(db, require(db, m.User, user_id), limit)

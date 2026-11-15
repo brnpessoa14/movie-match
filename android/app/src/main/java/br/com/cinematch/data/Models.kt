@@ -2,6 +2,9 @@ package br.com.cinematch.data
 
 data class User(val id: Int, val name: String)
 data class UserInput(val name: String)
+data class LoginInput(val username: String, val password: String)
+data class RegisterInput(val name: String, val username: String, val password: String)
+data class AuthResult(val access_token: String, val user: User, val username: String, val preferences_ready: Boolean)
 data class Genre(val id: Int, val name: String)
 data class PreferencesInput(val genre_ids: List<Int>)
 data class CastMember(val actor_name: String, val cast_order: Int)

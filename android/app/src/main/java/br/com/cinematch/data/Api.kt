@@ -8,7 +8,10 @@ import retrofit2.http.*
 import java.util.concurrent.TimeUnit
 
 interface Api {
-    @POST("users") suspend fun createUser(@Body input: UserInput): User
+    @POST("auth/login") suspend fun login(@Body input: LoginInput): AuthResult
+    @POST("auth/register") suspend fun register(@Body input: RegisterInput): AuthResult
+    @POST("auth/logout") suspend fun logout(): retrofit2.Response<Unit>
+    @GET("movies") suspend fun movies(): List<Movie>
     @GET("users/{id}") suspend fun user(@Path("id") id: Int): User
     @GET("genres") suspend fun genres(): List<Genre>
     @GET("users/{id}/preferences") suspend fun preferences(@Path("id") id: Int): List<Genre>
@@ -23,6 +26,12 @@ interface Api {
 
 object Repository {
     private val client = OkHttpClient.Builder()
+        .addInterceptor { chain ->
+            val request = chain.request().newBuilder().apply {
+                Profile.accessToken?.let { header("Authorization", "Bearer $it") }
+            }.build()
+            chain.proceed(request)
+        }
         .connectTimeout(10, TimeUnit.SECONDS).readTimeout(20, TimeUnit.SECONDS)
         .writeTimeout(20, TimeUnit.SECONDS).build()
     val api: Api = Retrofit.Builder().baseUrl(BuildConfig.API_BASE_URL)

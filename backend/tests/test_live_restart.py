@@ -48,7 +48,10 @@ def test_live_http_server_survives_restart(tmp_path):
     process = start()
     try:
         with httpx.Client(base_url=url, timeout=5) as client:
-            uid = client.post("/users", json={"name": "Persistência HTTP"}).json()["id"]
+            auth = client.post("/auth/register", json={"name": "Persistência HTTP", "username": "persistencia", "password": "TesteSenha123!"}).json()
+            uid = auth["user"]["id"]
+            token = auth["access_token"]
+            client.headers["Authorization"] = "Bearer " + token
             client.put(f"/users/{uid}/preferences", json={"genre_ids": [1, 8]}).raise_for_status()
             client.post("/evaluations", json={"user_id": uid, "movie_id": 1, "status": "GOSTEI"}).raise_for_status()
             history = client.get(f"/users/{uid}/evaluations").json()
@@ -58,6 +61,7 @@ def test_live_http_server_survives_restart(tmp_path):
     process = start()
     try:
         with httpx.Client(base_url=url, timeout=5) as client:
+            client.headers["Authorization"] = "Bearer " + token
             assert client.get(f"/users/{uid}/evaluations").json() == history
             assert client.get(f"/users/{uid}/recommendations").json() == recommendations
             assert len(client.get(f"/users/{uid}/preferences").json()) == 2

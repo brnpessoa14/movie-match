@@ -1,0 +1,30 @@
+{
+  "users": {
+    "before_rows": 7,
+    "all_original_rows_preserved": true
+  },
+  "movies": {
+    "before_rows": 20,
+    "all_original_rows_preserved": true
+  },
+  "genres": {
+    "before_rows": 11,
+    "all_original_rows_preserved": true
+  },
+  "movie_genres": {
+    "before_rows": 52,
+    "all_original_rows_preserved": true
+  },
+  "movie_cast": {
+    "before_rows": 60,
+    "all_original_rows_preserved": true
+  },
+  "user_preferences": {
+    "before_rows": 8,
+    "all_original_rows_preserved": true
+  },
+  "evaluations": {
+    "before_rows": 18,
+    "all_original_rows_preserved": true
+  }
+}

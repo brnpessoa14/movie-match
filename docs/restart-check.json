@@ -1,8 +1,7 @@
 {
-  "user_id_before": 7,
-  "user_id_after": 7,
-  "history_count_before": 3,
-  "history_count_after": 3,
-  "process_restart_verified": true,
-  "resumed_activity": "topResumedActivity=ActivityRecord{86899882 u0 br.com.cinematch/.ui.DiscoveryActivity t18}"
+  "app_version": "2.0",
+  "process_restart_requires_login": true,
+  "resumed_activity": "br.com.cinematch/.ui.MainActivity",
+  "legacy_profile_does_not_autologin": true,
+  "background_login_verified_in_instrumented_test": true
 }

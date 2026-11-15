@@ -209,7 +209,7 @@
         errorLine2="                                                      ~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="D:\movie-match\android\app\src\main\java\br\com\cinematch\ui\MovieAdapter.kt"
-            line="19"
+            line="22"
             column="55"/>
     </issue>
 
@@ -230,67 +230,53 @@
     </issue>
 
     <issue
-        id="Overdraw"
+        id="UselessParent"
         severity="Warning"
-        message="Possible overdraw: Root element paints background `@color/surface` with a theme that also paints a background (inferred theme is `@style/Theme.CineMatch`)"
+        message="This `LinearLayout` layout or its `FrameLayout` parent is unnecessary"
         category="Performance"
-        priority="3"
-        summary="Overdraw: Painting regions more than once"
-        explanation="If you set a background drawable on a root view, then you should use a custom theme where the theme background is null. Otherwise, the theme background will be painted first, only to have your custom background completely cover it; this is called &quot;overdraw&quot;.&#xA;&#xA;NOTE: This detector relies on figuring out which layouts are associated with which activities based on scanning the Java code, and it&apos;s currently doing that using an inexact pattern matching algorithm. Therefore, it can incorrectly conclude which activity the layout is associated with and then wrongly complain that a background-theme is hidden.&#xA;&#xA;If you want your custom background on multiple pages, then you should consider making a custom theme with your custom background and just using that theme instead of a root element background.&#xA;&#xA;Of course it&apos;s possible that your custom drawable is translucent and you want it to be mixed with the background. However, you will get better performance if you pre-mix the background with your drawable and use that resulting image or color as a custom theme background instead."
-        errorLine1="&lt;TextView xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot; android:layout_width=&quot;match_parent&quot; android:layout_height=&quot;48dp&quot; android:gravity=&quot;center_vertical&quot; android:paddingHorizontal=&quot;12dp&quot; android:textSize=&quot;15sp&quot; android:textColor=&quot;@color/text&quot; android:background=&quot;@color/surface&quot; />"
-        errorLine2="                                                                                                                                                                                                                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        priority="2"
+        summary="Unnecessary parent layout"
+        explanation="A layout with children that has no siblings, is not a scrollview or a root layout, and does not have a background, can be removed and have its children moved directly into the parent for a flatter and more efficient layout hierarchy."
+        errorLine1="        &lt;LinearLayout android:layout_width=&quot;match_parent&quot; android:layout_height=&quot;match_parent&quot; android:gravity=&quot;center&quot; android:baselineAligned=&quot;false&quot; android:padding=&quot;8dp&quot;>"
+        errorLine2="         ~~~~~~~~~~~~">
         <location
-            file="D:\movie-match\android\app\src\main\res\layout\item_status.xml"
-            line="1"
-            column="258"/>
-    </issue>
-
-    <issue
-        id="UseKtx"
-        severity="Warning"
-        message="Use the KTX extension function `SharedPreferences.edit` instead?"
-        category="Productivity"
-        priority="6"
-        summary="Use KTX extension function"
-        explanation="The Android KTX libraries decorates the Android platform SDK as well as various libraries with more convenient extension functions available from Kotlin, allowing you to use default parameters, named parameters, and more."
-        errorLine1="    fun save(user: User) { preferences.edit().putInt(&quot;user_id&quot;, user.id).putString(&quot;name&quot;, user.name).apply() }"
-        errorLine2="                           ~~~~~~~~~~~~~~~~~~">
-        <location
-            file="D:\movie-match\android\app\src\main\java\br\com\cinematch\data\Profile.kt"
+            file="D:\movie-match\android\app\src\main\res\layout\activity_main.xml"
             line="9"
-            column="28"/>
+            column="10"/>
     </issue>
 
     <issue
-        id="UseKtx"
+        id="SmallSp"
         severity="Warning"
-        message="Use the KTX extension function `SharedPreferences.edit` instead?"
-        category="Productivity"
-        priority="6"
-        summary="Use KTX extension function"
-        explanation="The Android KTX libraries decorates the Android platform SDK as well as various libraries with more convenient extension functions available from Kotlin, allowing you to use default parameters, named parameters, and more."
-        errorLine1="    fun complete() { preferences.edit().putBoolean(&quot;ready&quot;, true).apply() }"
-        errorLine2="                     ~~~~~~~~~~~~~~~~~~">
+        message="Avoid using sizes smaller than `11sp`: `10sp`"
+        category="Usability"
+        priority="4"
+        summary="Text size is too small"
+        explanation="Avoid using sizes smaller than 11sp."
+        errorLine1="        &lt;TextView android:layout_width=&quot;wrap_content&quot; android:layout_height=&quot;wrap_content&quot; android:layout_gravity=&quot;top|start&quot; android:layout_margin=&quot;16dp&quot; android:background=&quot;@drawable/badge_bg&quot; android:text=&quot;@string/v2_movie_card_2&quot; android:textColor=&quot;@color/text&quot; android:textSize=&quot;10sp&quot; android:letterSpacing=&quot;0.12&quot;/>"
+        errorLine2="                                                                                                                                                                                                                                                                          ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="D:\movie-match\android\app\src\main\java\br\com\cinematch\data\Profile.kt"
-            line="10"
-            column="22"/>
+            file="D:\movie-match\android\app\src\main\res\layout\movie_card.xml"
+            line="7"
+            column="267"/>
     </issue>
 
     <issue
-        id="UseKtx"
+        id="SetTextI18n"
         severity="Warning"
-        message="Use the KTX extension function `SharedPreferences.edit` instead?"
-        category="Productivity"
+        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+        category="Internationalization"
         priority="6"
-        summary="Use KTX extension function"
-        explanation="The Android KTX libraries decorates the Android platform SDK as well as various libraries with more convenient extension functions available from Kotlin, allowing you to use default parameters, named parameters, and more."
-        errorLine1="    fun clear() { preferences.edit().clear().apply() }"
-        errorLine2="                  ~~~~~~~~~~~~~~~~~~">
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        binding.counter.text = &quot;${movies.size} para explorar&quot;"
+        errorLine2="                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="D:\movie-match\android\app\src\main\java\br\com\cinematch\data\Profile.kt"
-            line="11"
-            column="19"/>
+            file="D:\movie-match\android\app\src\main\java\br\com\cinematch\ui\DiscoveryActivity.kt"
+            line="47"
+            column="32"/>
     </issue>
 
     <issue
@@ -303,8 +289,26 @@
         explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
         url="https://developer.android.com/guide/topics/resources/localization.html"
         urls="https://developer.android.com/guide/topics/resources/localization.html"
-        errorLine1="        binding.heading.text = &quot;Minha lista&quot;"
-        errorLine2="                                ~~~~~~~~~~~">
+        errorLine1="        binding.counter.text = &quot;${movies.size} para explorar&quot;"
+        errorLine2="                                              ~~~~~~~~~~~~~~">
+        <location
+            file="D:\movie-match\android\app\src\main\java\br\com\cinematch\ui\DiscoveryActivity.kt"
+            line="47"
+            column="47"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="        binding.eyebrow.text = &quot;SUA COLEÇÃO PESSOAL&quot;"
+        errorLine2="                                ~~~~~~~~~~~~~~~~~~~">
         <location
             file="D:\movie-match\android\app\src\main\java\br\com\cinematch\ui\HistoryActivity.kt"
             line="22"
@@ -321,12 +325,12 @@
         explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
         url="https://developer.android.com/guide/topics/resources/localization.html"
         urls="https://developer.android.com/guide/topics/resources/localization.html"
-        errorLine1="        binding.description.text = &quot;Os que você quer ver. Os que ficaram na memória. Suas escolhas estão aqui.&quot;"
-        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="        binding.heading.text = &quot;Histórias que ficam.&quot;"
+        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~">
         <location
             file="D:\movie-match\android\app\src\main\java\br\com\cinematch\ui\HistoryActivity.kt"
             line="23"
-            column="37"/>
+            column="33"/>
     </issue>
 
     <issue
@@ -339,11 +343,119 @@
         explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
         url="https://developer.android.com/guide/topics/resources/localization.html"
         urls="https://developer.android.com/guide/topics/resources/localization.html"
-        errorLine1="    binding.expand.text = &quot;Ler mais&quot;"
-        errorLine2="                           ~~~~~~~~">
+        errorLine1="        binding.description.text = &quot;Guarde os próximos encontros. Reveja os que já aconteceram.&quot;"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="D:\movie-match\android\app\src\main\java\br\com\cinematch\ui\HistoryActivity.kt"
+            line="24"
+            column="37"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="    binding.metadata.text = &quot;${movie.year}  ·  ${movie.runtime?.let { &quot;$it min&quot; } ?: &quot;Duração N/D&quot;}&quot;"
+        errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="D:\movie-match\android\app\src\main\java\br\com\cinematch\ui\MovieViews.kt"
+            line="28"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="    binding.imdb.text = &quot;IMDb  ${movie.imdb_rating ?: &quot;N/D&quot;}&quot;"
+        errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="D:\movie-match\android\app\src\main\java\br\com\cinematch\ui\MovieViews.kt"
             line="30"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="    binding.imdb.text = &quot;IMDb  ${movie.imdb_rating ?: &quot;N/D&quot;}&quot;"
+        errorLine2="                         ~~~~~~">
+        <location
+            file="D:\movie-match\android\app\src\main\java\br\com\cinematch\ui\MovieViews.kt"
+            line="30"
+            column="26"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="Do not concatenate text displayed with `setText`. Use resource string with placeholders."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="    binding.rotten.text = &quot;Rotten Tomatoes  ${movie.rotten_tomatoes_rating?.let { &quot;$it%&quot; } ?: &quot;N/D&quot;}&quot;"
+        errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="D:\movie-match\android\app\src\main\java\br\com\cinematch\ui\MovieViews.kt"
+            line="31"
+            column="27"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="    binding.rotten.text = &quot;Rotten Tomatoes  ${movie.rotten_tomatoes_rating?.let { &quot;$it%&quot; } ?: &quot;N/D&quot;}&quot;"
+        errorLine2="                           ~~~~~~~~~~~~~~~~~">
+        <location
+            file="D:\movie-match\android\app\src\main\java\br\com\cinematch\ui\MovieViews.kt"
+            line="31"
+            column="28"/>
+    </issue>
+
+    <issue
+        id="SetTextI18n"
+        severity="Warning"
+        message="String literal in `setText` can not be translated. Use Android resources instead."
+        category="Internationalization"
+        priority="6"
+        summary="TextView Internationalization"
+        explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
+        url="https://developer.android.com/guide/topics/resources/localization.html"
+        urls="https://developer.android.com/guide/topics/resources/localization.html"
+        errorLine1="    binding.expand.text = &quot;Ler sinopse completa&quot;"
+        errorLine2="                           ~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="D:\movie-match\android\app\src\main\java\br\com\cinematch\ui\MovieViews.kt"
+            line="34"
             column="28"/>
     </issue>
 
@@ -361,7 +473,7 @@
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="D:\movie-match\android\app\src\main\java\br\com\cinematch\ui\MovieViews.kt"
-            line="36"
+            line="40"
             column="25"/>
     </issue>
 
@@ -379,7 +491,7 @@
         errorLine2="                         ~~~~~~~~">
         <location
             file="D:\movie-match\android\app\src\main\java\br\com\cinematch\ui\MovieViews.kt"
-            line="36"
+            line="40"
             column="26"/>
     </issue>
 
@@ -393,8 +505,8 @@
         explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
         url="https://developer.android.com/guide/topics/resources/localization.html"
         urls="https://developer.android.com/guide/topics/resources/localization.html"
-        errorLine1="        binding.heading.text = &quot;A sua próxima sessão&quot;"
-        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="        binding.heading.text = &quot;O seu próximo favorito.&quot;"
+        errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="D:\movie-match\android\app\src\main\java\br\com\cinematch\ui\RecommendationsActivity.kt"
             line="16"
@@ -411,8 +523,8 @@
         explanation="When calling `TextView#setText`&#xA;* Never call `Number#toString()` to format numbers; it will not handle fraction separators and locale-specific digits properly. Consider using `String#format` with proper format specifications (`%d` or `%f`) instead.&#xA;* Do not pass a string literal (e.g. &quot;Hello&quot;) to display text. Hardcoded text can not be properly translated to other languages. Consider using Android resource strings instead.&#xA;* Do not build messages by concatenating text chunks. Such messages can not be properly translated."
         url="https://developer.android.com/guide/topics/resources/localization.html"
         urls="https://developer.android.com/guide/topics/resources/localization.html"
-        errorLine1="        binding.description.text = &quot;Recomendações que acompanham o seu gosto. Toque em um filme para conhecer a história.&quot;"
-        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        errorLine1="        binding.description.text = &quot;Uma seleção que acompanha o seu gosto, filme a filme.&quot;"
+        errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
             file="D:\movie-match\android\app\src\main\java\br\com\cinematch\ui\RecommendationsActivity.kt"
             line="17"
@@ -435,70 +547,6 @@
             file="D:\movie-match\android\app\src\main\java\br\com\cinematch\ui\RecommendationsActivity.kt"
             line="28"
             column="35"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        severity="Warning"
-        message="Hardcoded string &quot;Descobrir&quot;, should use `@string` resource"
-        category="Internationalization"
-        priority="5"
-        summary="Hardcoded text"
-        explanation="Hardcoding text attributes directly in layout files is bad for several reasons:&#xA;&#xA;* When creating configuration variations (for example for landscape or portrait) you have to repeat the actual text (and keep it up to date when making changes)&#xA;&#xA;* The application cannot be translated to other languages by just adding new translations for existing string resources.&#xA;&#xA;There are quickfixes to automatically extract this hardcoded string into a resource lookup."
-        errorLine1="    &lt;item android:id=&quot;@+id/nav_discovery&quot; android:title=&quot;Descobrir&quot; android:icon=&quot;@drawable/ic_discover&quot; />"
-        errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="D:\movie-match\android\app\src\main\res\menu\navigation.xml"
-            line="2"
-            column="43"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        severity="Warning"
-        message="Hardcoded string &quot;Para você&quot;, should use `@string` resource"
-        category="Internationalization"
-        priority="5"
-        summary="Hardcoded text"
-        explanation="Hardcoding text attributes directly in layout files is bad for several reasons:&#xA;&#xA;* When creating configuration variations (for example for landscape or portrait) you have to repeat the actual text (and keep it up to date when making changes)&#xA;&#xA;* The application cannot be translated to other languages by just adding new translations for existing string resources.&#xA;&#xA;There are quickfixes to automatically extract this hardcoded string into a resource lookup."
-        errorLine1="    &lt;item android:id=&quot;@+id/nav_recommendations&quot; android:title=&quot;Para você&quot; android:icon=&quot;@drawable/ic_star&quot; />"
-        errorLine2="                                                ~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="D:\movie-match\android\app\src\main\res\menu\navigation.xml"
-            line="3"
-            column="49"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        severity="Warning"
-        message="Hardcoded string &quot;Minha lista&quot;, should use `@string` resource"
-        category="Internationalization"
-        priority="5"
-        summary="Hardcoded text"
-        explanation="Hardcoding text attributes directly in layout files is bad for several reasons:&#xA;&#xA;* When creating configuration variations (for example for landscape or portrait) you have to repeat the actual text (and keep it up to date when making changes)&#xA;&#xA;* The application cannot be translated to other languages by just adding new translations for existing string resources.&#xA;&#xA;There are quickfixes to automatically extract this hardcoded string into a resource lookup."
-        errorLine1="    &lt;item android:id=&quot;@+id/nav_history&quot; android:title=&quot;Minha lista&quot; android:icon=&quot;@drawable/ic_list&quot; />"
-        errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="D:\movie-match\android\app\src\main\res\menu\navigation.xml"
-            line="4"
-            column="41"/>
-    </issue>
-
-    <issue
-        id="HardcodedText"
-        severity="Warning"
-        message="Hardcoded string &quot;Gêneros&quot;, should use `@string` resource"
-        category="Internationalization"
-        priority="5"
-        summary="Hardcoded text"
-        explanation="Hardcoding text attributes directly in layout files is bad for several reasons:&#xA;&#xA;* When creating configuration variations (for example for landscape or portrait) you have to repeat the actual text (and keep it up to date when making changes)&#xA;&#xA;* The application cannot be translated to other languages by just adding new translations for existing string resources.&#xA;&#xA;There are quickfixes to automatically extract this hardcoded string into a resource lookup."
-        errorLine1="    &lt;item android:id=&quot;@+id/nav_preferences&quot; android:title=&quot;Gêneros&quot; android:icon=&quot;@drawable/ic_settings&quot; />"
-        errorLine2="                                            ~~~~~~~~~~~~~~~~~~~~~~~">
-        <location
-            file="D:\movie-match\android\app\src\main\res\menu\navigation.xml"
-            line="5"
-            column="45"/>
     </issue>
 
 </issues>
