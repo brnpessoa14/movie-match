@@ -1,69 +1,45 @@
-# Arquitetura — CineMatch 2
+# Arquitetura - CineMatch 3.1
 
-**XML/Activity → Repository/Retrofit → FastAPI/Pydantic → SQLAlchemy → SQLite.** Imagens são carregadas pelo Coil usando URLs do catálogo, com fallback vetorial. O Android nunca acessa o SQLite diretamente.
+**Activity/XML -> Repository/Retrofit/OkHttp -> FastAPI/Pydantic -> SQLAlchemy -> SQLite.** Coil carrega URLs de imagens. O Android não acessa o banco de contas/avaliações diretamente.
 
-## Autenticação e ciclo de vida
+## Android
 
-O cadastro cria `User` e `Account` na mesma transação. `auth.py` aplica PBKDF2-HMAC-SHA256 com salt aleatório e 600.000 iterações à senha. O login verifica o hash com comparação constante e devolve um token aleatório de 256 bits. O banco guarda apenas o hash desse token e a expiração; logout exclui a sessão correspondente.
+Há sete Activities: Main, Preferences, Discovery, Recommendations, History, Profile e Catalog. BaseActivity compartilha navegação, insets, carregamento, erro e retry. data/Api.kt define o contrato REST e o interceptor Bearer; Models.kt contém DTOs. MovieAdapter reutiliza itens de RecyclerView. MovieViews cuida de dados, diálogo de detalhes e ACTION_SEND. MoviePresentation mede a área disponível e adapta a apresentação.
 
-`HTTPBearer` integra a autenticação ao Swagger. As rotas de preferências, perfil, descoberta, avaliações e recomendações dependem da sessão e conferem a correspondência entre a conta e o usuário solicitado. Saber um ID não autoriza acesso a ele. O catálogo e os gêneros são públicos.
+Profile mantém AuthResult somente em memória. CineMatchApplication descarta essa sessão ao entrar em segundo plano, preservando mudanças de configuração e a exceção transitória do compartilhamento. BaseActivity redireciona telas privadas sem sessão ao login e limpa a pilha. Appearance persiste somente Sistema/Claro/Escuro em SharedPreferences.
 
-No Android, `Profile` mantém a sessão somente em memória. O ID salvo pela versão antiga no SharedPreferences é ignorado. `MainActivity` sempre apresenta login. `CineMatchApplication` acompanha as Activities iniciadas; ao deixar o app em segundo plano, descarta a sessão. Ao retornar, `BaseActivity` abre o login e limpa a pilha das telas privadas. Rotação e navegação interna não são tratadas como uma nova entrada; há uma exceção transitória para o seletor de compartilhamento.
+## Backend e dados
 
-Senhas não são persistidas no dispositivo nem retornadas pela API. A duração de oito horas no servidor é um limite máximo da sessão, e não uma opção de login automático. O registro de conta permanece no banco, assim como suas preferências e avaliações.
+main.py define rotas, dependências e transações. schemas.py valida os contratos. auth.py gera/verifica PBKDF2 e sessões opacas, exige Bearer e compara a identidade da sessão com o ID solicitado. database.py cria sessões por requisição e ativa FKs no SQLite. create_all cria tabelas ausentes; não substitui migrações de alterações de colunas.
 
-Referências técnicas: [OWASP Password Storage](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html) e [FastAPI Security](https://fastapi.tiangolo.com/tutorial/security/). A escolha de uma sessão opaca revogável permite evitar uma dependência de JWT neste projeto local.
-
-## Responsabilidades
-
-- `data/Api.kt`: contratos Retrofit e interceptor Bearer.
-- `data/Models.kt`: payloads JSON de conta, filmes e avaliações.
-- `data/Profile.kt`: sessão móvel em memória.
-- `ui/BaseActivity.kt`: navegação, menu de conta, tratamento de erros e carregamento.
-- `ui/MainActivity.kt`: validação, cadastro e login.
-- Demais Activities: preferências, avaliação, recomendações e lista pessoal.
-- `ui/MovieViews.kt`: cartaz, informações e Intent de compartilhamento reutilizáveis.
-- `ui/MovieAdapter.kt`: cards de listas.
-- `ui/MaxWidthLayout.kt`: limita e centraliza a largura dos conteúdos.
-- `backend/app/auth.py`: derivação/verificação de senha, sessões e autorização.
-- `database.py` e `models.py`: sessões SQL e restrições relacionais.
-- `schemas.py` e `main.py`: validação e endpoints.
-- `recommendations.py`: recomendação independente da UI e da OMDb.
-- `catalog.py` e `enrich.py`: seed idempotente e enriquecimento manual.
-
-## Tabelas
-
-| Tabela | Integridade |
+| Tabela | Função e integridade |
 |---|---|
-| users | ID do perfil e nome de exibição |
-| accounts | Usuário único, FK única para users, hash da senha e conclusão de preferências |
-| auth_sessions | FK para accounts, hash único do token e expiração |
-| movies | ID, IMDb ID único, metadados e notas opcionais |
-| genres | ID e nome único |
-| movie_genres | PK composta e FKs |
-| movie_cast | PK movie_id/cast_order e FK |
-| user_preferences | PK user_id/genre_id e FKs |
-| evaluations | FKs, unicidade user_id/movie_id e CHECK dos quatro status |
+| users | Identidade do perfil, nome e criação |
+| accounts | Username único, user_id único, hash e preferences_ready |
+| auth_sessions | FK account_id, hash único do token e expiração |
+| movies | IMDb ID único e metadados |
+| genres | Nome único |
+| movie_genres | Associação N:M; PK composta e FKs |
+| movie_cast | Elenco por filme; PK movie_id/cast_order |
+| user_preferences | Associação N:M; PK composta e FKs |
+| evaluations | FKs, UNIQUE user_id/movie_id e CHECK dos quatro status |
+| catalog_searches | Cache auxiliar por consulta/página; IDs em JSON, total e data |
+| provider_usage | Contador por dia UTC |
 
-As tabelas novas são criadas sem alterar ou apagar as tabelas existentes. Perfis antigos sem credenciais são preservados e não podem ser assumidos apenas pelo ID. Um backup SQLite é feito antes da atualização do ambiente local.
+User e Account têm relação 1:1. Account possui N sessões. Usuários e filmes têm N gêneros por tabelas associativas. Cada avaliação liga um usuário a um filme e guarda status e datas. O JSON de IDs de catalog_searches é uma simplificação de cache auxiliar, não o modelo do histórico.
 
-## Interface adaptável
+## Avaliação e recomendação
 
-Formulários e descoberta têm largura máxima de 560 dp; listas usam até 1080 dp. Listas mostram duas colunas a partir de 720 dp. A descoberta possui layout próprio na horizontal, com filme e ações em painéis separados. Qualificadores de altura ajustam o cartaz em telas menores. Conteúdo longo e teclado usam rolagem; as quatro ações ficam acessíveis. Os recuos do sistema são aplicados uma única vez no shell.
+O seletor muda apenas o contexto. O clique de ação envia POST. busy bloqueia repetições; saved conserva a confirmação entre tentativas. Depois do POST, pendingRefresh mantém os controles de avaliação bloqueados até o GET da nova fila. Se o POST falha, o filme não avança; se apenas o GET falha, o retry não repete o POST. UNIQUE protege também no banco.
 
-## Persistência e recomendação
+recommendations.py soma +3 por preferência e +5/+2/-4/-1 por avaliação em cada gênero, calcula a média do candidato, exclui todos os filmes já avaliados e desempata por ID. Descoberta e recomendações usam essa regra; não há modelo de aprendizado de máquina. A descoberta usa cabeçalhos para informar o total completo e os candidatos restantes, independentemente do lote de 20.
 
-Cada operação de escrita confirma uma transação. A avaliação só avança depois da confirmação. Se o próximo carregamento falha após salvar, a nova tentativa não repete a avaliação confirmada. O banco também impede duplicações. As Activities consultam novamente os dados ao retomar a navegação.
+## OMDb e cache
 
-A recomendação usa +3 para preferências; +5/+2/−4/−1 para avaliações; média por gênero e ID como desempate. Exclui todos os filmes já avaliados e calcula novamente em cada consulta. IMDb e Rotten Tomatoes são informações de exibição, não parte do peso de recomendação.
+O seed idempotente contém 20 filmes. expand.py faz importação opcional e omdb_catalog.py busca títulos/páginas e fichas reais. Filmes existentes são preservados. Gêneros importados são mapeados; notas e cartazes ausentes têm fallback. Novas sinopses podem estar em inglês.
 
+Uma busca normalizada por texto/página reutiliza o cache por sete dias. A reserva de quota usa operação condicional atômica específica de SQLite; workers fazem HTTP, não compartilham a Session SQL. Consultas à descoberta usam os dados salvos, sem consultar a OMDb por candidato. .env e o banco não são publicados.
 
-## Evolução Banner (3.0)
+## Validação e limites
 
-As cinco Activities originais foram preservadas; ProfileActivity acrescenta edição real da conta e configurações. Gêneros continuam no fluxo de cadastro e também são acessíveis pelo perfil. O shell possui avatar, quatro destinos, insets reais e erros contextuais. A navegação continua disponível durante consultas; a requisição de avaliação bloqueia toques duplicados.
-
-DiscoveryActivity utiliza somente dois contextos: não assisti e já assisti. Mudar o seletor não envia HTTP. Depois de um POST confirmado, remove o filme da fila carregada, restaura o contexto inicial e atualiza a tela; falhas mantêm filme e contexto. As listas consultam novamente a API ao retomar. Detalhes e compartilhamento permanecem nativos.
-
-O endpoint PATCH /users/{id} aceita nome e usuário opcional, normaliza o usuário, valida formato e unicidade e faz a atualização na mesma transação. O ID da conta e as relações existentes permanecem iguais. GET /users/{id} inclui o usuário da conta autenticada. A autorização existente permanece obrigatória.
-
-Appearance salva somente a opção Sistema/Claro/Escuro em SharedPreferences e aplica AppCompatDelegate no início do processo. Cores claras e escuras ficam em values e values-night. A descoberta adapta cartaz, introdução e resumo à altura disponível, sem reduzir globalmente a tipografia. Textos completos permanecem no diálogo. Fontes ampliadas podem rolar a área do filme; ações e navegação permanecem acessíveis.
+O relatório docs/validation-3.1.md registra os resultados executados. O ambiente validado é Android API 37 em emulador com FastAPI local. Deploy, Android físico e Play Store não foram validados. O banco local ampliado não acompanha um clone; o seed e a importação documentada permitem preparar outro ambiente.

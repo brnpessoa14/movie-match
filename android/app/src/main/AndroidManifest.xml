@@ -6,6 +6,7 @@
         android:usesCleartextTraffic="false">
         <activity android:name=".ui.HistoryActivity" android:exported="false" />
         <activity android:name=".ui.ProfileActivity" android:exported="false" />
+        <activity android:name=".ui.CatalogActivity" android:exported="false" />
         <activity android:name=".ui.RecommendationsActivity" android:exported="false" />
         <activity android:name=".ui.DiscoveryActivity" android:exported="false" />
         <activity android:name=".ui.PreferencesActivity" android:exported="false" />

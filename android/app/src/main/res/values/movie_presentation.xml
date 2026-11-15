@@ -1,0 +1,9 @@
+<resources>
+    <dimen name="discovery_title_expanded">26sp</dimen>
+    <dimen name="discovery_plot_expanded">18sp</dimen>
+    <dimen name="discovery_metadata_expanded">15sp</dimen>
+    <dimen name="discovery_secondary_expanded">14sp</dimen>
+    <dimen name="discovery_section_expanded">16sp</dimen>
+    <dimen name="discovery_cast_expanded">15sp</dimen>
+    <dimen name="discovery_poster_expanded_max">132dp</dimen>
+</resources>

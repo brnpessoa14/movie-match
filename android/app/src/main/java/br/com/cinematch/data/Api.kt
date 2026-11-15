@@ -18,6 +18,8 @@ interface Api {
     @GET("users/{id}/preferences") suspend fun preferences(@Path("id") id: Int): List<Genre>
     @PUT("users/{id}/preferences") suspend fun savePreferences(@Path("id") id: Int, @Body input: PreferencesInput): List<Genre>
     @GET("movies/discovery") suspend fun discovery(@Query("user_id") userId: Int): List<Movie>
+    @GET("movies/discovery") suspend fun discoveryPage(@Query("user_id") userId: Int): retrofit2.Response<List<Movie>>
+    @GET("movies/search") suspend fun search(@Query("q") query: String, @Query("page") page: Int): MovieSearchResult
     @POST("evaluations") suspend fun evaluate(@Body input: EvaluationInput): Evaluation
     @GET("users/{id}/evaluations") suspend fun history(@Path("id") id: Int): List<Evaluation>
     @PATCH("evaluations/{id}") suspend fun update(@Path("id") id: Int, @Query("user_id") userId: Int, @Body input: EvaluationPatch): Evaluation
@@ -33,10 +35,18 @@ object Repository {
             }.build()
             chain.proceed(request)
         }
-        .connectTimeout(10, TimeUnit.SECONDS).readTimeout(20, TimeUnit.SECONDS)
+        .connectTimeout(10, TimeUnit.SECONDS).readTimeout(45, TimeUnit.SECONDS)
         .writeTimeout(20, TimeUnit.SECONDS).build()
     val api: Api = Retrofit.Builder().baseUrl(BuildConfig.API_BASE_URL)
         .client(client).addConverterFactory(GsonConverterFactory.create()).build().create(Api::class.java)
+
+    suspend fun discovery(userId: Int): DiscoveryBatch {
+        val response = api.discoveryPage(userId)
+        if (!response.isSuccessful) throw retrofit2.HttpException(response)
+        val movies = response.body().orEmpty()
+        return DiscoveryBatch(movies, response.headers()["X-Remaining-Count"]?.toIntOrNull() ?: movies.size,
+            response.headers()["X-Catalog-Total"]?.toIntOrNull() ?: movies.size)
+    }
 
     suspend fun deleteEvaluation(id: Int, userId: Int) {
         val response = api.delete(id, userId)

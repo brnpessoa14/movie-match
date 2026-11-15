@@ -85,3 +85,17 @@ class Evaluation(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
     movie: Mapped[Movie] = relationship(lazy="selectin")
+
+
+class CatalogSearch(Base):
+    __tablename__ = "catalog_searches"
+    key: Mapped[str] = mapped_column(String(140), primary_key=True)
+    movie_ids: Mapped[str] = mapped_column(Text)
+    total_results: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class ProviderUsage(Base):
+    __tablename__ = "provider_usage"
+    day: Mapped[str] = mapped_column(String(10), primary_key=True)
+    requests: Mapped[int] = mapped_column(Integer, default=0)

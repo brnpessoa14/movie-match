@@ -76,6 +76,22 @@ class CineMatchFlowTest {
         onData(org.hamcrest.Matchers.equalTo(label)).perform(click())
     }
 
+    private fun waitForReturnFromChooser() {
+        val until = System.currentTimeMillis() + 10000
+        var retriedBack = false
+        val started = System.currentTimeMillis()
+        while (System.currentTimeMillis() < until) {
+            val active = instrumentation.uiAutomation.rootInActiveWindow?.packageName?.toString()
+            if (active == context.packageName) return
+            if (!retriedBack && System.currentTimeMillis() - started > 1000 && active in setOf("android", "com.android.intentresolver")) {
+                instrumentation.sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
+                retriedBack = true
+            }
+            Thread.sleep(100)
+        }
+        throw AssertionError("O seletor de compartilhamento ainda está cobrindo o aplicativo.")
+    }
+
     private fun fill(id: Int, text: String) {
         onView(withId(id)).perform(scrollTo(), replaceText(text), androidx.test.espresso.action.ViewActions.closeSoftKeyboard())
     }
@@ -169,9 +185,11 @@ class CineMatchFlowTest {
             waitForChooser()
             screenshot("06-compartilhar")
             instrumentation.sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
+            waitForReturnFromChooser()
         } finally { Intents.release() }
         onView(withText("Fechar")).inRoot(isDialog()).perform(click())
 
+        waitScreen(R.id.nav_history)
         onView(withId(R.id.nav_history)).perform(click())
         waitScreen(R.id.filter)
         filter(EvaluationStatus.QUERO_ASSISTIR.label)
@@ -242,8 +260,9 @@ class CineMatchFlowTest {
         Profile(context).complete()
         val catalog = runBlocking { Repository.api.discovery(auth.user.id) }
         scenario.onActivity { it.startActivity(Intent(it, DiscoveryActivity::class.java)); it.finish() }
-        for (movie in catalog) {
+        for (index in catalog.indices) {
             waitScreen(R.id.primary_action)
+            val movie = runBlocking { Repository.api.discovery(auth.user.id) }.first()
             onView(withId(R.id.title)).check(matches(withText(movie.title.substringBefore(": "))))
             onView(withId(R.id.title)).check(matches(isCompletelyDisplayed()))
             if (movie.title.contains(": ")) onView(withId(R.id.subtitle)).check(matches(isCompletelyDisplayed()))
@@ -251,7 +270,7 @@ class CineMatchFlowTest {
             if (movie.title.length > 32) screenshot("long-title-${movie.id}")
             onView(withId(R.id.secondary_action)).perform(click())
         }
-        waitScreen(R.id.empty)
+        waitScreen(R.id.primary_action)
         assertEquals(catalog.size, runBlocking { Repository.api.history(auth.user.id) }.size)
         logout()
         scenario.close()

@@ -95,6 +95,14 @@ class MovieOut(OrmSchema):
     rotten_tomatoes_rating: int | None
     genres: list[GenreOut]
     cast: list[CastOut]
+    discovery_reason: str | None = None
+
+
+class MovieSearchOut(BaseModel):
+    movies: list[MovieOut]
+    total_results: int
+    page: int
+    cached: bool
 
 
 class EvaluationInput(BaseModel):

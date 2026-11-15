@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Response
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -10,6 +10,7 @@ from . import models as m, schemas as s
 from .catalog import seed
 from .database import Base, SessionLocal, engine, get_db
 from .recommendations import recommend
+from .omdb_catalog import CatalogUnavailable, search_catalog
 from .auth import SessionAuth, authorize, DUMMY_HASH, hash_password, issue_session, verify_password
 
 
@@ -128,11 +129,27 @@ def movies(db: DB, offset: int = Query(0, ge=0), limit: int = Query(50, ge=1, le
 
 # Rota estática antes de /movies/{movie_id}.
 @app.get("/movies/discovery", response_model=list[s.MovieOut], tags=["Catálogo"])
-def discovery(user_id: int, db: DB, session: SessionAuth, limit: int = Query(20, ge=1, le=100)):
+def discovery(user_id: int, db: DB, session: SessionAuth, response: Response, limit: int = Query(20, ge=1, le=100)):
     authorize(session, user_id)
-    require(db, m.User, user_id)
-    evaluated = select(m.Evaluation.movie_id).where(m.Evaluation.user_id == user_id)
-    return db.scalars(select(m.Movie).where(m.Movie.id.not_in(evaluated)).order_by(m.Movie.id).limit(limit)).all()
+    user = require(db, m.User, user_id)
+    total = db.scalar(select(func.count()).select_from(m.Movie))
+    rated = db.scalar(select(func.count()).select_from(m.Evaluation).where(m.Evaluation.user_id == user_id))
+    response.headers['X-Catalog-Total'] = str(total)
+    response.headers['X-Remaining-Count'] = str(total - rated)
+    results = recommend(db, user, limit)
+    for item in results:
+        item['movie'].discovery_reason = item['reason']
+    return [item['movie'] for item in results]
+
+
+@app.get('/movies/search', response_model=s.MovieSearchOut, tags=['Catálogo'])
+def search_movies(db: DB, session: SessionAuth, q: str = Query(min_length=2, max_length=100), page: int = Query(1, ge=1, le=100)):
+    if len(q.strip()) < 2:
+        raise HTTPException(422, 'Digite pelo menos dois caracteres.')
+    try:
+        return search_catalog(db, q, page)
+    except CatalogUnavailable as error:
+        raise HTTPException(503, str(error)) from None
 
 
 @app.get("/movies/{movie_id}", response_model=s.MovieOut, tags=["Catálogo"])

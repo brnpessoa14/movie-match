@@ -9,12 +9,14 @@
     <TextView android:id="@+id/metadata" style="@style/Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="6dp" android:textSize="13sp"/>
     <TextView android:id="@+id/genres" style="@style/Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="7dp" android:textSize="12sp"/>
     <TextView android:id="@+id/imdb" style="@style/Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:textColor="@color/text" android:textSize="12sp"/>
+    <TextView android:id="@+id/rotten" style="@style/Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:textColor="@color/text" android:textSize="14sp" android:visibility="gone"/>
    </LinearLayout>
   </LinearLayout>
  </com.google.android.material.card.MaterialCardView>
  <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:baselineAligned="false" android:layout_marginTop="4dp">
-  <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/banner_movie_card_29" android:textColor="@color/text" android:textSize="14sp" android:fontFamily="sans-serif-medium"/>
+  <TextView android:id="@+id/story_heading" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/banner_movie_card_29" android:textColor="@color/text" android:textSize="14sp" android:fontFamily="sans-serif-medium"/>
   <com.google.android.material.button.MaterialButton android:id="@+id/expand" style="@style/TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/banner_item_movie_24" app:icon="@drawable/ic_arrow" app:iconGravity="textEnd" app:iconSize="16dp"/>
  </LinearLayout>
  <TextView android:id="@+id/plot" style="@style/Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:maxLines="@integer/synopsis_lines" android:ellipsize="end" android:textSize="14sp"/>
+ <TextView android:id="@+id/cast" style="@style/Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="14dp" android:maxLines="3" android:ellipsize="end" android:textSize="15sp" android:visibility="gone"/>
 </LinearLayout>

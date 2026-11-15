@@ -30,6 +30,7 @@ abstract class BaseActivity : AppCompatActivity() {
     protected val isBusy: Boolean get() = busy
     protected var contextualError: TextView? = null
     protected var contextualRetry: View? = null
+    protected open fun afterRequest() = Unit
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,15 +49,19 @@ abstract class BaseActivity : AppCompatActivity() {
         shell.account.setOnClickListener {
             if (this !is ProfileActivity) navigate(ProfileActivity::class.java)
         }
+        shell.catalogSearch.setOnClickListener {
+            if (this !is CatalogActivity && requireProfile()) navigate(CatalogActivity::class.java)
+        }
         val selected = when (this) {
             is DiscoveryActivity -> R.id.nav_discovery
+            is CatalogActivity -> R.id.nav_discovery
             is RecommendationsActivity -> R.id.nav_recommendations
             is HistoryActivity -> R.id.nav_history
             else -> R.id.nav_profile
         }
         shell.navigation.menu.findItem(selected).isChecked = true
         shell.navigation.setOnItemSelectedListener { item ->
-            if (item.itemId == selected) return@setOnItemSelectedListener false
+            if (item.itemId == selected && this !is CatalogActivity) return@setOnItemSelectedListener false
             val destination = when (item.itemId) {
                 R.id.nav_discovery -> DiscoveryActivity::class.java
                 R.id.nav_recommendations -> RecommendationsActivity::class.java
@@ -156,6 +161,7 @@ abstract class BaseActivity : AppCompatActivity() {
                 busy = false
                 shell.loading.visibility = View.INVISIBLE
                 enableActions(shell.content, true)
+                afterRequest()
             }
         }
     }

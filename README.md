@@ -1,66 +1,70 @@
 # CineMatch
 
-Descubra sua próxima história. Aplicativo Android nativo para descobrir, avaliar e guardar filmes, com recomendações pessoais e **contas com nome de usuário e senha**. Projeto da AP2 de Desenvolvimento Mobile.
+Aplicativo Android nativo para descobrir, avaliar e guardar filmes, com contas por usuário e senha e recomendações explicáveis. Projeto da AP2 de Desenvolvimento Mobile.
 
-## Interface Banner — versão 3.0-banner
+**Versão Android: 3.1 (versionCode 4).** Kotlin/XML, sete Activities, API REST FastAPI documentada com Swagger e persistência relacional em SQLite.
 
-Esta versão local mantém Android nativo em Kotlin/XML e FastAPI/SQLite. A descoberta usa cartaz à esquerda, informações à direita, resumo e detalhes em diálogo. O seletor **Não assisti / Já assisti** muda somente as opções: a avaliação é enviada ao tocar na ação principal ou secundária. A API precisa confirmar antes de avançar. Há bloqueio contra toques duplicados, erro no contexto e nova tentativa; confirmações de sucesso não cobrem a interface.
+## Funcionalidades
 
-A navegação é **Descobrir, Para você, Minha lista e Perfil**. O avatar abre o perfil, que permite editar nome e usuário no backend, alterar gêneros, escolher Sistema/Claro/Escuro e sair. A aparência fica salva no dispositivo; credenciais e sessão continuam somente em memória. Não há WebView, login automático ou dados de conta fixos.
+- Cadastro/login, isolamento entre contas e histórico persistido no backend.
+- Preferências de gêneros no cadastro e no perfil.
+- Descoberta ordenada por preferências e avaliações, atualizada após cada resposta confirmada.
+- Avaliações contextuais: **Não assisti** oferece Quero assistir / Não me interessa; **Já assisti** oferece Gostei / Não gostei. Trocar o seletor não grava avaliação.
+- Cartaz, metadados, sinopse e elenco adaptados ao espaço disponível; detalhes completos em diálogo nativo.
+- Para você com motivos reais da recomendação; Minha lista com filtro, alteração e remoção de avaliações.
+- Busca de títulos na OMDb, resultados paginados e cache persistente no backend.
+- Perfil com edição real de nome e usuário, gêneros, logout e aparência Sistema/Claro/Escuro.
+- Compartilhamento com Intent implícita ACTION_SEND e seletor do Android.
 
-O emulador validado neste computador chama-se **CineMatch_Banner_API_37**. Foi criado separadamente após o AVD anterior deixar de estar registrado. Os arquivos antigos e os dados da API foram preservados.
+## Executar no Windows
 
-**Abra `D:\movie-match\android` no Android Studio**, aguarde a importação Gradle, escolha a configuração `app` e o emulador acima, e pressione **Run ▶**. Abrir apenas o dispositivo pelo Device Manager inicia o Android; a instalação do código atual é feita pelo Run ou pelo APK compilado. O APK atual identifica-se como **3.0-banner (versionCode 3)**.
+Requisitos: Python 3.12+, Android Studio, SDK Android e JDK compatíveis com o projeto. A configuração atual usa compileSdk 37, targetSdk 36, minSdk 26, Gradle 9.6.0 e Android Gradle Plugin 9.4.0. O toolchain de build configurado é JDK 25, com bytecode JVM 17.
 
-API local: `http://localhost:8000/health`. O Android acessa essa API por `http://10.0.2.2:8000/`. Se o servidor estiver desligado, execute `start-backend.ps1` na raiz do projeto. O app exige conexão com essa API para consultar e salvar dados.
+### Backend
 
-Validação desta versão e capturas: [docs/validation-banner.md](docs/validation-banner.md). A interface Banner permanece somente nos arquivos locais nesta etapa; não foi feito commit nem push desta evolução.
-
-## Abrir e usar
-
-No Android Studio, abra **`D:\movie-match\android`**, aguarde o Gradle Sync, selecione um emulador e execute a configuração `app` com ▶. O projeto usa o SDK 37 e o Gradle Wrapper incluído. O JDK integrado do Android Studio deste computador foi validado.
-
-Na primeira abertura, toque em **Criar conta**. Informe nome, usuário (3–32 letras sem acentos, números, ponto, hífen ou sublinhado) e senha com pelo menos 8 caracteres. Depois escolha seus gêneros. Nas próximas entradas, use **Entrar** com o mesmo usuário e senha.
-
-**O app abre no login e pede credenciais novamente ao retornar do segundo plano.** Senha e token não são persistidos no dispositivo; o token da sessão fica somente em memória. Navegação interna, rotação e o seletor de compartilhamento mantêm a sessão em uso. As preferências e avaliações continuam salvas na conta do backend. O avatar no canto superior direito abre o perfil; a opção Sair da conta encerra a sessão.
-
-Perfis demonstrativos antigos, que não tinham senha, foram preservados no banco, mas não geram login automático nem são convertidos em contas com uma senha padrão. Crie uma conta para usar o novo fluxo.
-
-## Backend no Windows
-
-O backend precisa estar ligado enquanto o aplicativo é usado. O ambiente `.venv` já foi preparado neste computador. Para iniciar quando a API não estiver em execução:
+Na raiz do clone:
 
 ```powershell
-cd D:\movie-match
+.\setup.ps1 -Python 'C:\caminho\python.exe'
 .\start-backend.ps1
 ```
 
-Alternativa sem script PowerShell:
+Substitua o caminho de exemplo pelo Python instalado. O setup cria `.venv` e instala `backend/requirements.lock.txt`. Se o ambiente já estiver preparado, basta iniciar o backend. Mantenha o servidor ativo enquanto usa o app.
+
+Alternativa de inicialização:
 
 ```powershell
-cd D:\movie-match\backend
+cd backend
 ..\.venv\Scripts\python.exe -m uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-Para instalar em outro ambiente com Python 3.12+: ` .\setup.ps1 -Python 'C:\caminho\python.exe' `. Dependências Python fixadas em `backend/requirements.lock.txt`.
-
 - [Swagger local](http://localhost:8000/docs)
-- [OpenAPI](http://localhost:8000/openapi.json)
-- [Verificação da API](http://localhost:8000/health)
+- [OpenAPI local](http://localhost:8000/openapi.json)
+- [Health local](http://localhost:8000/health)
 
-O banco é `backend/cinematch.db`, criado automaticamente. Inicie a API a partir de `backend` ou use o script raiz para manter o mesmo arquivo. Não apague o banco para demonstrar persistência.
+Esses endereços só funcionam onde a API está executando. O banco padrão é `backend/cinematch.db`. O script raiz fixa a pasta de trabalho para manter o mesmo arquivo; não apague o banco para demonstrar persistência.
 
-## Android e conexão
+### Android
+
+1. Abra a pasta **android** no Android Studio (`D:\movie-match\android` neste computador).
+2. Aguarde o Gradle Sync, escolha a configuração **app** e um emulador.
+3. Pressione **Run** para compilar e instalar o código atual. Abrir apenas o dispositivo pelo Device Manager não reinstala o APK.
+
+O emulador validado neste computador é **CineMatch_Banner_API_37**. O endereço padrão do backend no Android é `http://10.0.2.2:8000/`; `localhost` no emulador representa o próprio Android, não o Windows.
 
 ```powershell
-cd D:\movie-match\android
+cd android
 .\build.ps1
 # APK: app\build\outputs\apk\debug\app-debug.apk
 ```
 
-Android mínimo: 8.0/API 26. O emulador padrão acessa o computador por **`http://10.0.2.2:8000/`**, já configurado em `BuildConfig.API_BASE_URL`. O `localhost` do Android é o próprio dispositivo.
+Na primeira abertura, crie uma conta. O usuário aceita de 3 a 32 letras sem acento, números, ponto, hífen ou sublinhado; a senha precisa ter pelo menos 8 caracteres. Depois escolha seus gêneros.
 
-Com `platform-tools` no PATH, para usar um celular USB com depuração autorizada:
+**O app pede novo login ao retornar do segundo plano.** Senha e token não são persistidos no dispositivo. Rotação, navegação interna e o seletor de compartilhamento preservam a sessão em uso. Preferências e avaliações continuam no banco da conta. A aparência é salva localmente em SharedPreferences.
+
+### Alternativa USB (não validada nesta entrega)
+
+Com depuração USB autorizada e platform-tools no PATH:
 
 ```powershell
 .\build.ps1 -ApiBaseUrl 'http://127.0.0.1:8000/'
@@ -68,124 +72,108 @@ adb reverse tcp:8000 tcp:8000
 adb install -r app\build\outputs\apk\debug\app-debug.apk
 ```
 
-HTTP é permitido somente no manifesto **debug**. Para distribuição de produção, use HTTPS, assinatura e a URL configurada por `-PAPI_BASE_URL=https://.../`.
+HTTP local é permitido somente no debug. Uma distribuição externa exige HTTPS, assinatura e URL configurada com `-PAPI_BASE_URL=https://.../`.
 
-## Interface e funcionalidades
+## Catálogo: o que vem no clone
 
-- Login com cartazes reais, alternância entre entrar/cadastrar e validação dos campos.
-- Preferências em cards selecionáveis, com contador e seleção múltipla.
-- Descoberta com cartaz completo, fundo cinematográfico, título, duração, gêneros, IMDb, Rotten Tomatoes, sinopse expansível, elenco e compartilhamento.
-- Quatro avaliações contextuais: Quero assistir / Não me interessa e Gostei / Não gostei, conforme o seletor.
-- Recomendações com motivos baseados nas preferências e avaliações da conta.
-- Minha lista com filtro, atualização e exclusão das avaliações.
-- Perfil real, edição de nome/usuário, aparência e exigência de novo login ao reabrir.
-- Layouts com largura máxima, listas em duas colunas em telas largas, painel lateral na horizontal e conteúdo rolável em telas pequenas.
+O banco local observado na validação tinha **511 filmes**, mas o banco, as contas e a chave OMDb **não são versionados**. Um clone novo cria um seed idempotente de **20 filmes** com sinopses editoriais em português. O catálogo cresce por importação e busca.
 
-### Activities e Intents
+Para habilitar buscas, copie `backend/.env.example` para `backend/.env` e preencha `OMDB_API_KEY` localmente. Sem chave, o seed e os fluxos internos continuam funcionando; novas buscas externas exigem chave válida e cota disponível.
+
+Expansão opcional, a partir da raiz:
+
+```powershell
+cd backend
+..\.venv\Scripts\python.exe -m app.expand --target 500 --requests 650
+```
+
+Esse comando usa consultas reais da OMDb. Não é executado automaticamente ao abrir o app. `app.enrich` enriquece filmes já existentes e também consome consultas; não precisa ser repetido para demonstrar o sistema.
+
+A OMDb oferece busca por título e fichas. O CineMatch calcula a ordenação por gêneros. Resultados de busca são cacheados por sete dias; novas fichas são importadas sem sobrescrever os títulos e sinopses dos filmes já existentes. Sinopses novas podem estar em inglês. Cartazes ausentes usam fallback e notas ausentes mostram N/D. Consulte a [OMDb](https://www.omdbapi.com/) e as [referências do catálogo inicial](docs/catalog-sources.md).
+
+Consultar descoberta ou recomendações usa o SQLite e não uma consulta OMDb por candidato. A API interna e o carregamento de imagens continuam necessários; o aplicativo não é totalmente offline.
+
+## Activities, Intents e Views
 
 | Activity | Responsabilidade |
 |---|---|
-| MainActivity | Login/cadastro com usuário e senha; nunca entra automaticamente no ID do protótipo |
-| PreferencesActivity | Leitura e edição dos gêneros da conta |
-| DiscoveryActivity | Filme atual e quatro avaliações via API |
-| RecommendationsActivity | Recomendações personalizadas e detalhes |
-| HistoryActivity | Lista pessoal, filtro, alteração e exclusão |
-| ProfileActivity | Edição persistente da conta, gêneros, aparência e logout |
+| MainActivity | Login e cadastro |
+| PreferencesActivity | Seleção e persistência dos gêneros |
+| DiscoveryActivity | Candidato atual e quatro avaliações contextuais |
+| RecommendationsActivity | Recomendações com motivos e detalhes |
+| HistoryActivity | Minha lista, filtro, alteração e exclusão |
+| ProfileActivity | Dados da conta, gêneros, aparência e logout |
+| CatalogActivity | Busca OMDb, páginas e detalhes |
 
-As cinco Activities originais e a nova ProfileActivity usam XML e Intents explícitas. O compartilhamento usa `Intent.ACTION_SEND`, `text/plain` e `Intent.createChooser`, em `ui/MovieViews.kt`. Nenhum envio é realizado automaticamente. Views: TextView, EditText, MaterialButton, ImageView, CheckBox, RecyclerView, ProgressBar, MaterialCardView, Spinner, ScrollView e GridLayout.
+Todas são Activities reais com XML e navegação por Intents explícitas. O compartilhamento em `ui/MovieViews.kt` usa `ACTION_SEND`, `text/plain` e `Intent.createChooser`; nenhum conteúdo é enviado automaticamente.
 
-### Capturas da versão anterior
+Views usadas: TextView, EditText/TextInputEditText, MaterialButton, ImageView/ImageButton, MaterialCheckBox, Spinner, RecyclerView, ProgressBar, MaterialCardView, ScrollView e GridLayout.
 
-| Login | Gêneros | Descoberta |
-|---|---|---|
-| ![Login](docs/screenshots/01-inicio.png) | ![Gêneros](docs/screenshots/02-generos.png) | ![Descoberta](docs/screenshots/03-descobrir.png) |
+## Capturas reais da versão 3.1
 
-| Recomendações | Minha lista | Cadastro |
-|---|---|---|
-| ![Recomendações](docs/screenshots/04-recomendacoes.png) | ![Lista](docs/screenshots/05-minha-lista.png) | ![Cadastro](docs/screenshots/07-cadastro.png) |
+| Descoberta | Busca |
+|---|---|
+| ![Descoberta](docs/screenshots/expanded/responsive-normal-discovery.png) | ![Busca](docs/screenshots/expanded/catalog-search.png) |
 
-As capturas adicionais `responsive-compact-*` e `responsive-wide-*` documentam a adaptação do layout no emulador.
+Também há capturas de temas, tela compacta, horizontal e fonte em 200% em `docs/screenshots/expanded/`. As imagens usam contas de teste.
 
-## API e autenticação
+## API
 
 | Método | Caminho | Função |
 |---|---|---|
-| GET | `/health` | Saúde da API e do banco |
-| POST | `/auth/register` | Cria uma conta e inicia uma sessão |
-| POST | `/auth/login` | Valida usuário/senha e devolve token Bearer |
+| GET | `/health` | Saúde da API/banco |
+| POST | `/auth/register`, `/auth/login` | Conta e sessão Bearer |
 | POST | `/auth/logout` | Revoga a sessão atual |
-| GET / PATCH | `/users/{id}` | Consulta/altera o próprio perfil |
-| GET | `/genres` | Catálogo público de gêneros |
-| GET / PUT | `/users/{id}/preferences` | Lê/substitui preferências da conta |
-| GET | `/movies` e `/movies/{id}` | Catálogo público e detalhes |
-| GET | `/movies/discovery?user_id=...` | Filmes que a conta ainda não avaliou |
-| POST | `/evaluations` | Registra avaliação única por usuário/filme |
-| GET | `/users/{id}/evaluations` | Histórico, com filtro opcional de status |
-| PATCH / DELETE | `/evaluations/{id}?user_id=...` | Altera/remove avaliação da própria conta |
+| GET / PATCH | `/users/{id}` | Consulta/altera a própria conta |
+| GET | `/genres` | Gêneros existentes |
+| GET / PUT | `/users/{id}/preferences` | Consulta/substitui preferências |
+| GET | `/movies`, `/movies/{id}` | Catálogo e ficha |
+| GET | `/movies/discovery?user_id=...` | Candidatos personalizados, lote padrão 20 |
+| GET | `/movies/search?q=...&page=...` | Busca OMDb autenticada e cache |
+| POST | `/evaluations` | Cria avaliação única por conta/filme |
+| GET | `/users/{id}/evaluations` | Histórico e filtro opcional de status |
+| PATCH / DELETE | `/evaluations/{id}?user_id=...` | Altera/remove a própria avaliação |
 | GET | `/users/{id}/watchlist` | Filmes que deseja assistir |
-| GET | `/users/{id}/recommendations` | Recomendações calculadas |
+| GET | `/users/{id}/recommendations` | Filme, score e motivo |
 
-Cadastro de exemplo:
+No Swagger, cadastre/entre, copie `access_token` e use **Authorize**. Os IDs nas rotas privadas precisam corresponder à identidade do token. A descoberta informa `X-Catalog-Total` e `X-Remaining-Count`, para distinguir lote recebido e total disponível.
 
-```json
-{"name": "Seu nome", "username": "seu.usuario", "password": "escolha-uma-senha"}
-```
-
-Login:
-
-```json
-{"username": "seu.usuario", "password": "escolha-uma-senha"}
-```
-
-A resposta contém `access_token`, `user`, `username` e `preferences_ready`. No Swagger, copie o token devolvido por login/cadastro e use **Authorize**. Rotas privadas exigem `Authorization: Bearer <access_token>` e conferem se o ID informado pertence à sessão autenticada. O Android envia esse cabeçalho automaticamente pelo interceptor do OkHttp.
-
-Senhas usam PBKDF2-HMAC-SHA256 com salt individual e 600.000 iterações; nunca são salvas em texto puro. Tokens são aleatórios, armazenados no banco somente como hash SHA-256 e expiram em oito horas. Sair revoga a sessão no servidor. A política de reabrir o app exige login novamente antes desse prazo, pois a sessão móvel é descartada ao entrar em segundo plano. Não há recuperação por e-mail ou autenticação social nesta versão.
+Senhas usam PBKDF2-HMAC-SHA256 com salt individual e 600.000 iterações. Tokens opacos são aleatórios, guardados no banco apenas como hash SHA-256 e expiram em oito horas. O interceptor OkHttp envia Bearer. A sessão móvel é somente em memória; não há recuperação por e-mail nem login social.
 
 ## Recomendação
 
-Peso de cada gênero = +3 se escolhido nas preferências + pesos das avaliações de filmes que possuem esse gênero. Pesos: `GOSTEI` +5, `QUERO_ASSISTIR` +2, `NAO_GOSTEI` −4, `SEM_INTERESSE` −1. A pontuação do candidato é a média dos pesos dos seus gêneros. Maior pontuação vem primeiro, com ID crescente como desempate.
+Peso por gênero: +3 para preferência, +5 para GOSTEI, +2 para QUERO_ASSISTIR, -4 para NAO_GOSTEI e -1 para SEM_INTERESSE. O score do candidato é a média dos pesos dos seus gêneros. Ordenação decrescente por score e crescente por ID no empate.
 
-Todos os filmes avaliados são excluídos, inclusive os desejados. Explicações mencionam somente gêneros com peso positivo. Sem afinidade positiva, informa que é uma alternativa para explorar. Não são usadas porcentagens de compatibilidade ou IA externa. Alterações e exclusões atualizam o cálculo na consulta seguinte.
+Todos os filmes já avaliados são excluídos, inclusive os desejados. Descoberta e Para você usam essa regra. Após cada avaliação confirmada, a descoberta consulta a fila recalculada. IMDb/Rotten Tomatoes não participam do score. Não há treinamento de modelo nem percentuais de compatibilidade inventados.
 
-## Catálogo e OMDb
-
-O catálogo local tem 20 filmes reais, 11 gêneros, sinopses editoriais próprias e [referências](docs/catalog-sources.md). Os títulos já foram enriquecidos no banco local com cartazes e notas da [OMDb](https://www.omdbapi.com/). Abrir o app ou fazer login não consulta a OMDb: o Android recebe os dados já salvos na própria API e baixa as imagens por URL.
-
-Para enriquecer novamente, configure a chave exclusivamente em `backend/.env` e execute:
-
-```powershell
-cd D:\movie-match\backend
-..\.venv\Scripts\python.exe -m app.enrich
-```
-
-Uma execução completa usa uma consulta por filme. O comando é manual, não há atualização automática a cada abertura. Sem chave, o catálogo e as avaliações funcionam; imagens ausentes usam uma ilustração original e notas ausentes mostram N/D. Respeite os termos, atribuição e limites da OMDb. `.env` e banco local são ignorados pelo Git.
-
-## Organização e testes
+## Organização, persistência e testes
 
 ```text
-android/app/src/main/       Activities, cliente HTTP, sessão em memória e recursos XML
-android/app/src/androidTest Testes reais de conta, navegação e responsividade
-backend/app/auth.py        Hash de senhas, tokens e autorização
-backend/app/models.py      Nove tabelas relacionais
-backend/app/main.py        Endpoints FastAPI
-backend/app/recommendations.py Algoritmo independente da interface
-backend/tests/             Pytest, isolamento de contas e reinício HTTP real
-docs/                      Arquitetura, apresentação, relatórios e capturas
+android/app/src/main/java/br/com/cinematch/
+  data/                 Retrofit, DTOs, sessão e aparência
+  ui/                   Activities, adapter, detalhes e layout adaptável
+android/app/src/main/res/ Layouts XML, temas e recursos
+backend/app/main.py     Rotas FastAPI e dependências
+backend/app/schemas.py  Validação Pydantic e contratos
+backend/app/models.py  Onze tabelas, relacionamentos e restrições
+backend/app/auth.py     Senhas, sessões e autorização
+backend/app/recommendations.py  Regra de recomendação
+backend/app/omdb_catalog.py     Busca, importação, cache e cota
+backend/tests/          Testes em bancos temporários
+docs/                   Arquitetura, apresentação, relatórios e capturas
 ```
 
 ```powershell
-cd D:\movie-match\backend
+cd backend
 ..\.venv\Scripts\python.exe -m pytest -q
 cd ..\android
-.\gradlew.bat assembleDebug lintDebug
-# API ligada e emulador iniciado:
+.\gradlew.bat assembleDebug assembleDebugAndroidTest lintDebug
+# Com API e emulador ativos:
 .\gradlew.bat connectedDebugAndroidTest
 ```
 
-Os testes Android criam contas de demonstração na API em execução. Os testes Python usam bancos temporários. Resultados efetivos estão em [docs/validation.md](docs/validation.md). Veja também a [arquitetura](docs/architecture.md) e o [roteiro de apresentação](docs/presentation.md).
+Resultados registrados na versão 3.1: **20 testes do backend e 8 verificações Android passaram** (5 testes principais + 3 execuções de responsividade). Build concluído; lint com 0 erros e 71 avisos. Testes Android criam contas adicionais na API em execução. Consulte o [relatório 3.1](docs/validation-3.1.md), a [arquitetura](docs/architecture.md) e o [roteiro de apresentação](docs/presentation.md).
 
-## GitHub e limites
+## Limites da entrega
 
-O repositório remoto contém a entrega anterior. A evolução Banner é local e não foi publicada no GitHub.
-
-A API de demonstração usa SQLite e HTTP local no build debug. Uma publicação externa exige HTTPS e configuração de produção. A conta não oferece recuperação de senha por e-mail. Catálogo, preferências e histórico exigem conexão com o próprio backend. Dispositivo físico, Play Store e nuvem não foram validados nesta atualização.
+Validação em emulador API 37 e API local. Android físico, Play Store e nuvem não foram validados. O GitHub contém o código e a documentação; ele não hospeda a API. SQLite e HTTP debug atendem à demonstração local; uma implantação de produção exige configuração, HTTPS e operação próprios. O arquivo de banco e os registros de conta permanecem locais.

@@ -4,6 +4,7 @@ import android.animation.ValueAnimator
 import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.View
+import androidx.core.view.doOnLayout
 import androidx.core.content.ContextCompat
 import br.com.cinematch.R
 import br.com.cinematch.data.*
@@ -14,12 +15,19 @@ class DiscoveryActivity : BaseActivity() {
     private var current: Movie? = null
     private var remaining = emptyList<Movie>()
     private var seen = false
+    private var remainingCount = 0
+    private var pendingRefresh = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDiscoveryBinding.inflate(layoutInflater)
         screen(binding.root, "Descobrir")
         binding.introEyebrow.visibility = if (resources.configuration.screenHeightDp < 650) View.GONE else View.VISIBLE
+        binding.scroll.addOnLayoutChangeListener { view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+            if (right - left != oldRight - oldLeft || bottom - top != oldBottom - oldTop) {
+                current?.let { fitMovie(this, binding.movie, it, view.width, view.height) }
+            }
+        }
         contextualError = binding.actionError
         contextualRetry = binding.actionRetry
         seen = savedInstanceState?.getBoolean("seen") ?: false
@@ -40,28 +48,45 @@ class DiscoveryActivity : BaseActivity() {
     override fun onResume() {
         super.onResume()
         if (requireProfile()) request {
-            remaining = Repository.api.discovery(profile.id)
-            display(remaining.firstOrNull())
+            refresh()
         }
     }
 
     private fun rate(status: EvaluationStatus) {
         val movie = current ?: return
         if (isBusy) return
+        var saved = false
         request {
-            Repository.api.evaluate(EvaluationInput(profile.id, movie.id, status))
-            // A fila recebida evita uma segunda requisição entre confirmação e avanço.
-            remaining = remaining.filterNot { it.id == movie.id }
+            if (!saved) {
+                Repository.api.evaluate(EvaluationInput(profile.id, movie.id, status))
+                saved = true
+                pendingRefresh = true
+            }
+            refresh()
             seen = false
             binding.viewingMode.check(R.id.unseen)
             renderActions()
-            display(remaining.firstOrNull())
             if (ValueAnimator.areAnimatorsEnabled()) {
                 binding.movie.root.alpha = 0.65f
                 binding.movie.root.animate().alpha(1f).setDuration(160).start()
             }
             message("${status.label}. ${current?.title ?: "Fim do catálogo."}")
         }
+    }
+
+    private suspend fun refresh() {
+        val batch = Repository.discovery(profile.id)
+        remaining = batch.movies
+        remainingCount = batch.remaining
+        pendingRefresh = false
+        display(remaining.firstOrNull())
+    }
+
+    override fun afterRequest() {
+        binding.primaryAction.isEnabled = !pendingRefresh
+        binding.secondaryAction.isEnabled = !pendingRefresh
+        binding.unseen.isEnabled = !pendingRefresh
+        binding.seen.isEnabled = !pendingRefresh
     }
 
     private fun renderActions() {
@@ -76,11 +101,17 @@ class DiscoveryActivity : BaseActivity() {
 
     private fun display(movie: Movie?) {
         current = movie
-        binding.counter.text = "${remaining.size} filmes"
+        binding.counter.text = "$remainingCount filmes"
         binding.movie.root.visibility = if (movie == null) View.GONE else View.VISIBLE
         binding.actions.visibility = if (movie == null) View.GONE else View.VISIBLE
         binding.empty.visibility = if (movie == null) View.VISIBLE else View.GONE
-        if (movie != null) bindMovie(this, binding.movie, movie)
+        if (movie != null) {
+            binding.introEyebrow.text = movie.discovery_reason ?: getString(R.string.banner_activity_discovery_3)
+            binding.introEyebrow.textSize = 12f
+            binding.introEyebrow.letterSpacing = 0f
+            bindMovie(this, binding.movie, movie)
+            binding.scroll.doOnLayout { fitMovie(this, binding.movie, movie, it.width, it.height) }
+        }
         binding.scroll.scrollTo(0, 0)
     }
 }

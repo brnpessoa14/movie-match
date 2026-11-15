@@ -46,6 +46,38 @@ class BannerBehaviorTest {
     }
     private fun fill(id: Int, value: String) { onView(withId(id)).perform(scrollTo(), replaceText(value), closeSoftKeyboard()) }
 
+    @Test fun realCatalogSearchReturnsCachedMoviesAndDetails() {
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        waitFor(R.id.username)
+        val auth = runBlocking { Repository.api.register(RegisterInput("Teste de busca", "search_" + System.currentTimeMillis().toString().takeLast(9), "CinemaSenha123!")) }
+        Profile(context).save(auth)
+        runBlocking { Repository.api.savePreferences(auth.user.id, PreferencesInput(emptyList())) }
+        Profile(context).complete()
+        val first = runBlocking { Repository.api.search("Batman", 1) }
+        assertTrue(first.total_results > 0 && first.movies.isNotEmpty())
+        assertTrue(runBlocking { Repository.api.search("Batman", 1) }.cached)
+        scenario.onActivity { it.startActivity(Intent(it, DiscoveryActivity::class.java)); it.finish() }
+        waitFor(R.id.primary_action)
+        onView(withId(R.id.catalog_search)).perform(click())
+        waitFor(R.id.query)
+        onView(withId(R.id.query)).perform(replaceText("Batman"), closeSoftKeyboard())
+        onView(withId(R.id.search)).perform(click())
+        waitFor(R.id.result_count)
+        onView(withId(R.id.list)).check { view,_ -> assertEquals(first.movies.size,(view as androidx.recyclerview.widget.RecyclerView).adapter!!.itemCount) }
+        screenshot("catalog-search")
+        onView(withId(R.id.list)).perform(androidx.test.espresso.contrib.RecyclerViewActions.actionOnItemAtPosition<androidx.recyclerview.widget.RecyclerView.ViewHolder>(0, object : androidx.test.espresso.ViewAction {
+            override fun getConstraints() = isAssignableFrom(View::class.java)
+            override fun getDescription() = "Abrir detalhes do resultado"
+            override fun perform(controller: androidx.test.espresso.UiController, view: View) { view.findViewById<View>(R.id.details).performClick(); controller.loopMainThreadUntilIdle() }
+        }))
+        onView(withId(R.id.title)).inRoot(isDialog()).check(matches(withText(first.movies.first().title)))
+        onView(withText("Fechar")).inRoot(isDialog()).perform(click())
+        onView(withId(R.id.nav_discovery)).perform(click())
+        waitFor(R.id.primary_action)
+        assertTrue(runBlocking { Repository.discovery(auth.user.id) }.total > 20)
+        scenario.close()
+    }
+
     @Test fun failureDoesNotAdvanceAndProfilePersists() {
         val scenario = ActivityScenario.launch(MainActivity::class.java)
         waitFor(R.id.username)

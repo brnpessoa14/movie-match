@@ -1,0 +1,9 @@
+<resources>
+    <string name="catalog_title">Mais histórias para encontrar.</string>
+    <string name="catalog_hint">Busque um título na OMDb. Algumas sinopses são fornecidas em inglês.</string>
+    <string name="catalog_query">Título do filme</string>
+    <string name="catalog_search">Buscar filmes</string>
+    <string name="catalog_open">Buscar no catálogo</string>
+    <string name="catalog_previous">Anterior</string>
+    <string name="catalog_next">Próxima</string>
+</resources>

@@ -1,54 +1,33 @@
-# Apresentação — CineMatch 2
+# Apresentação - CineMatch 3.1
 
 ## Preparar
 
-1. Iniciar a API com `D:\movie-match\start-backend.ps1` se ela não estiver ligada.
-2. Abrir `D:\movie-match\android` no Android Studio e executar `app` no emulador.
-3. Criar sua própria conta, escolher gêneros e estudar o código. Não depender de um perfil automático.
-4. Abrir o Swagger em `http://localhost:8000/docs`. Ter README e link GitHub disponíveis após publicar.
+1. Iniciar a API com start-backend.ps1 e conferir http://localhost:8000/health.
+2. Abrir a pasta android no Android Studio e executar app no emulador.
+3. Ter uma conta de apresentação com credenciais conhecidas e dados de teste que podem ser alterados.
+4. Abrir Swagger em http://localhost:8000/docs e o repositório GitHub. Os links da API são locais.
 
-## Demonstração (6–8 minutos)
+## Demonstração sugerida (6-8 minutos)
 
-“O CineMatch transforma preferências e avaliações em sugestões de filmes explicáveis. Cada pessoa entra na própria conta e mantém sua lista.”
+1. Apresentar a proposta: coletar preferências/avaliações e sugerir filmes por uma regra explicável.
+2. Mostrar login/cadastro e gêneros; explicar que os dados pertencem à conta no backend.
+3. Na descoberta, mudar o contexto sem gravar, avaliar e mostrar a fila recalculada.
+4. Abrir Para você e explicar um motivo real e os pesos por gênero.
+5. Em Minha lista, filtrar, alterar status e excluir uma avaliação de teste.
+6. Abrir detalhes e o compartilhamento ACTION_SEND, cancelando sem enviar conteúdo.
+7. Mostrar perfil, aparência e busca por um título na OMDb; consultas novas dependem de cota/internet.
+8. Demonstrar uma rota autenticada e o CRUD no Swagger; abrir os arquivos centrais.
+9. Reabrir o app, entrar e mostrar que o histórico persiste. Não alegar bônus não validado.
 
-1. **Login/cadastro:** mostrar as duas opções, validação da senha e login de uma conta existente. Explicar que reabrir o app exige entrar novamente.
-2. **Gêneros:** selecionar vários cards; explicar PUT de preferências e persistência no backend.
-3. **Descoberta:** mostrar cartaz, título, notas, duração e sinopse expansível. Avaliar quatro filmes usando os quatro status.
-4. **Compartilhamento:** abrir o seletor com ACTION_SEND e cancelar sem enviar.
-5. **Para você:** apresentar uma recomendação e seu motivo. Explicar os pesos por gênero e a exclusão dos títulos avaliados.
-6. **Minha lista:** filtrar “quero assistir”, mudar para “gostei” e excluir uma avaliação. Mostrar atualização nas consultas seguintes.
-7. **Contas:** sair pelo ícone de pessoa e entrar novamente; o histórico continua no banco. Outra conta tem sua própria lista.
-8. **Swagger e código:** mostrar cadastro/login, Authorize com o token, uma rota privada e os modelos relacionais.
+## Pontos do código
 
-## Código para explicar
+- Sete Activities e navegação: AndroidManifest.xml e ui/BaseActivity.kt.
+- Login e sessão: MainActivity, data/Profile.kt, CineMatchApplication e backend/app/auth.py.
+- Intent implícita: ui/MovieViews.kt, ACTION_SEND e createChooser.
+- Avaliação e retry: ui/DiscoveryActivity.kt, saved e pendingRefresh.
+- Contratos e JSON: data/Api.kt, Models.kt e backend/app/schemas.py.
+- Banco/FKs/restrições: backend/app/models.py e database.py.
+- Regra de pontuação: backend/app/recommendations.py.
+- Busca/cache: backend/app/omdb_catalog.py.
 
-- Cinco Activities e Intents explícitas: `android/app/src/main/java/br/com/cinematch/ui/`.
-- Intent implícita: `ui/MovieViews.kt`, ACTION_SEND e createChooser.
-- Cliente REST e token: `data/Api.kt`.
-- Sessão móvel: `data/Profile.kt` e `CineMatchApplication.kt`.
-- Senhas e autorização: `backend/app/auth.py`.
-- Tabelas/FKs: `backend/app/models.py`.
-- Recomendações: `backend/app/recommendations.py`.
-- Testes: `backend/tests` e `android/app/src/androidTest`.
-
-## Perguntas e respostas
-
-**Por que cinco Activities?** A atividade exige cinco Activities reais. Cada uma tem uma responsabilidade e layout XML; a navegação utiliza Intents explícitas.
-
-**Qual é a Intent implícita?** ACTION_SEND para compartilhar texto. O Android escolhe os aplicativos compatíveis; não definimos uma classe de destino.
-
-**Onde fica a senha?** O backend guarda uma derivação PBKDF2 com salt individual, nunca a senha em texto. O Android mantém somente o token em memória durante o uso.
-
-**Por que o histórico permanece se preciso entrar novamente?** Os registros pertencem à conta no banco. Descartar a sessão móvel não apaga o usuário nem suas avaliações.
-
-**Outro usuário pode trocar o ID da URL e ver meus dados?** As rotas privadas comparam o ID com a identidade da sessão autenticada e recusam o acesso a outra conta.
-
-**Onde os dados são armazenados?** No SQLite do backend, via SQLAlchemy. Retrofit faz a comunicação HTTP JSON; não há banco de avaliações no Android.
-
-**É machine learning?** Não. É um algoritmo determinístico por gêneros, com pesos explicáveis, média e desempate por ID. Não apresenta uma porcentagem de precisão.
-
-**Por que 10.0.2.2?** No emulador padrão, esse endereço acessa o computador host. Localhost dentro do dispositivo não representa o Windows.
-
-**E se a OMDb estiver indisponível?** Os filmes já estão persistidos. A recomendação não depende de uma consulta externa. Imagens podem usar fallback e notas ausentes aparecem como N/D.
-
-**Por que não publicar diretamente esta API em produção?** O ambiente usa HTTP de desenvolvimento local. Uma implantação externa precisa de HTTPS, operação de produção e políticas adicionais, como recuperação de conta e limitação de tentativas.
+O número de filmes do ambiente é variável. Um clone novo começa com os 20 filmes do seed, pois banco e chave não são versionados. Consulte README.md para preparar o ambiente e docs/validation-3.1.md para as verificações registradas.

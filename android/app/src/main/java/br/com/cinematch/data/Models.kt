@@ -13,8 +13,10 @@ data class Movie(
     val id: Int, val imdb_id: String?, val title: String, val year: Int,
     val runtime: Int?, val plot: String, val poster_url: String?,
     val imdb_rating: Double?, val rotten_tomatoes_rating: Int?,
-    val genres: List<Genre>, val cast: List<CastMember>
+    val genres: List<Genre>, val cast: List<CastMember>, val discovery_reason: String? = null
 )
+data class DiscoveryBatch(val movies: List<Movie>, val remaining: Int, val total: Int)
+data class MovieSearchResult(val movies: List<Movie>, val total_results: Int, val page: Int, val cached: Boolean)
 enum class EvaluationStatus(val label: String) {
     SEM_INTERESSE("Não me interessa"),
     NAO_GOSTEI("Não gostei"),
